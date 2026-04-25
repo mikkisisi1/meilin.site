@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Mic, Camera } from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getGreeting } from '@/contexts/translations-extra';
@@ -9,6 +10,9 @@ import ChatHeader from '@/components/chat/ChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import ImagePreview from '@/components/chat/ImagePreview';
 import ImagePickerModal from '@/components/chat/ImagePickerModal';
+import QuickReplies from '@/components/chat/QuickReplies';
+import SpecialistContactModal from '@/components/chat/SpecialistContactModal';
+import AuthPromptModal from '@/components/chat/AuthPromptModal';
 import useAudioStream from '@/hooks/useAudioStream';
 import useChat from '@/hooks/useChat';
 import useSpeechRecognition from '@/hooks/useSpeechRecognition';
@@ -24,10 +28,13 @@ const GREETINGS = {
 const getLangGreeting = (lang, voice) => getGreeting(lang, voice) || GREETINGS[voice];
 
 export default function ChatPage() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, isGuest } = useAuth();
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showSpecialistModal, setShowSpecialistModal] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authPromptShown, setAuthPromptShown] = useState(false);
   const [input, setInput] = useState('');
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [voiceChosen, setVoiceChosen] = useState(false);
@@ -112,8 +119,7 @@ export default function ChatPage() {
 
   // Voice selection handler — первый выбор ИЛИ переключение агента.
   // При переключении стартуем новый диалог с нуля: новый session_id, полное приветствие.
-  const handleVoiceSelect = async (voice) => {
-    // Клик по уже активному агенту — ничего не делаем.
+  const handleVoiceSelect = async (voice) => {    // Клик по уже активному агенту — ничего не делаем.
     if (voice === activeVoice) return;
 
     const isSwitch = voiceChosen && messages.length > 0;
@@ -316,6 +322,50 @@ export default function ChatPage() {
     ? `${process.env.PUBLIC_URL}/chat-bg-desktop.jpg`
     : `${process.env.PUBLIC_URL}/chat-bg.jpg`;
 
+  // B4: Clear chat — wipes server-side messages + UI history; keeps user profile + questionnaire.
+  const handleClearChat = useCallback(async () => {
+    if (!window.confirm(t('clearChatConfirm'))) return;
+    try {
+      await apiClient.delete('/chat/messages');
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') console.error('Clear chat failed:', err.message);
+    }
+    stopTTS();
+    startNewSession();
+    if (activeVoice) {
+      const greetingText = getGreeting(lang, activeVoice) || GREETINGS[activeVoice];
+      setMessages([{
+        role: 'ai',
+        content: greetingText,
+        id: `greeting_${activeVoice}_${Date.now()}`,
+      }]);
+    }
+    toast(t('chatCleared'));
+  }, [t, stopTTS, startNewSession, activeVoice, lang, setMessages]);
+
+  // B5: After intake is complete — prompt guest users to save their progress.
+  useEffect(() => {
+    if (intakeStep === -2 && isGuest && !authPromptShown) {
+      const id = setTimeout(() => {
+        setShowAuthPrompt(true);
+        setAuthPromptShown(true);
+      }, 1500);
+      return () => clearTimeout(id);
+    }
+  }, [intakeStep, isGuest, authPromptShown]);
+
+  // B1: Quick replies visible only after intake completes (so they don't conflict with name/intake prompts).
+  const isIntakePending = messages.some((m) => m.intakeQuestion && !m.intakeAnswered);
+  const showQuickReplies = (
+    voiceChosen
+    && intakeStep === -2
+    && !isIntakePending
+    && !loading
+    && !isListening
+    && !showRunningText
+    && !input.trim()
+  );
+
   return (
     <div className="xc-chat-modal" data-testid="chat-page">
       <div className="xc-chat-bg" style={{ backgroundImage: `url(${chatBg})` }} />
@@ -338,6 +388,7 @@ export default function ChatPage() {
         freeSessionLabel={t('freeSession')}
         countdownSeconds={countdownSeconds}
         isBusy={loading || playingTTS}
+        onClearChat={handleClearChat}
       />
 
       <div className="xc-chat-body">
@@ -368,6 +419,10 @@ export default function ChatPage() {
 
         <input type="file" ref={fileInputRef} accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
         <input type="file" ref={cameraInputRef} accept="image/*" capture="environment" onChange={handleImageSelect} style={{ display: 'none' }} />
+
+        {showQuickReplies && (
+          <QuickReplies onPick={(text) => handleSend(text)} disabled={loading} />
+        )}
 
         {/* Input Area — inline как в Xicon.online App.js */}
         <div className="xc-chat-input-area" data-testid="chat-input-form">
@@ -436,7 +491,21 @@ export default function ChatPage() {
         />
       )}
 
-      <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <BurgerMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onTalkToSpecialist={() => setShowSpecialistModal(true)}
+      />
+
+      <SpecialistContactModal
+        open={showSpecialistModal}
+        onClose={() => setShowSpecialistModal(false)}
+      />
+
+      <AuthPromptModal
+        open={showAuthPrompt}
+        onClose={() => setShowAuthPrompt(false)}
+      />
     </div>
   );
 }

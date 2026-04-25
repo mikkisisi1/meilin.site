@@ -732,3 +732,44 @@ async def get_chat_sessions(request: Request):
         }
         for s in sessions
     ]}
+
+
+
+@router.delete("/chat/messages")
+async def clear_chat_messages(request: Request):
+    """Clear all chat messages for the current user. Keeps user profile, settings, and questionnaire intact."""
+    user = await get_current_user(request)
+    result = await db.chat_messages.delete_many({"user_id": user["_id"]})
+    # Drop in-memory session histories belonging to this user too.
+    sessions_to_drop = []
+    for sid, hist in chat_histories.items():
+        if any(m.get("_user_id") == user["_id"] for m in hist if isinstance(m, dict)):
+            sessions_to_drop.append(sid)
+    for sid in sessions_to_drop:
+        chat_histories.pop(sid, None)
+        session_photo_count.pop(sid, None)
+    return {"message": "Chat messages cleared", "deleted": result.deleted_count}
+
+
+class SpecialistRequestPayload(BaseModel):
+    name: Optional[str] = None
+    contact: str
+    note: Optional[str] = None
+    channel: Optional[str] = None  # "whatsapp" | "phone" | "form"
+
+
+@router.post("/specialist/request")
+async def specialist_request(payload: SpecialistRequestPayload, request: Request):
+    """Persist a 'Talk to a Specialist' request. Lightweight intake — only contact + optional note."""
+    user = await get_current_user(request)
+    doc = {
+        "user_id": user["_id"],
+        "name": (payload.name or "").strip()[:120] or None,
+        "contact": payload.contact.strip()[:200],
+        "note": (payload.note or "").strip()[:1000] or None,
+        "channel": payload.channel or "form",
+        "status": "new",
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.specialist_requests.insert_one(doc)
+    return {"message": "Request received"}

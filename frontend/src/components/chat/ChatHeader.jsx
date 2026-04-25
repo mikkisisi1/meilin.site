@@ -1,21 +1,24 @@
-import React from 'react';
-import { ArrowLeft, Volume2, VolumeX, Menu } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Volume2, VolumeX, Menu, MoreVertical } from 'lucide-react';
+import HeaderMenu from './HeaderMenu';
 
 export default function ChatHeader({
   voiceChosen, activeVoice, onVoiceSelect,
   ttsEnabled, toggleTTS,
   isFreePhase, hasMinutes, minutesLeft, formatTime,
   onBack, freeSessionLabel, countdownSeconds,
-  onMenuOpen, isBusy,
+  onMenuOpen, isBusy, onClearChat,
 }) {
+  const [moreOpen, setMoreOpen] = useState(false);
   const showCountdown = countdownSeconds !== null && countdownSeconds >= 0;
 
   return (
     <div className="xc-chat-header" data-testid="chat-header">
+      <button data-testid="chat-back-btn" onClick={onBack} className="xc-close-btn">
+        <ArrowLeft size={20} strokeWidth={1.5} />
+      </button>
+
       <div className="xc-chat-agent-info">
-        <button data-testid="chat-back-btn" onClick={onBack} className="xc-close-btn">
-          <ArrowLeft size={20} strokeWidth={1.5} />
-        </button>
         <div className="xc-chat-avatars-row">
           <button
             className={`xc-chat-avatar-item ${!voiceChosen ? 'xc-avatar-selectable' : ''} ${activeVoice === 'male' ? 'xc-avatar-active' : ''} ${voiceChosen && activeVoice !== 'male' ? 'xc-avatar-dim' : ''}`}
@@ -28,6 +31,7 @@ export default function ChatHeader({
             </div>
             <span className="xc-avatar-name">Leon</span>
           </button>
+          <span className="xc-avatar-separator" aria-hidden="true">•</span>
           <button
             className={`xc-chat-avatar-item ${!voiceChosen ? 'xc-avatar-selectable' : ''} ${activeVoice === 'female' ? 'xc-avatar-active' : ''} ${voiceChosen && activeVoice !== 'female' ? 'xc-avatar-dim' : ''}`}
             onClick={() => onVoiceSelect('female')}
@@ -41,6 +45,7 @@ export default function ChatHeader({
           </button>
         </div>
       </div>
+
       <div className="xc-header-right">
         {showCountdown && (
           <span className="xc-countdown" data-testid="countdown-timer">
@@ -54,6 +59,26 @@ export default function ChatHeader({
         >
           {ttsEnabled ? <Volume2 size={18} strokeWidth={1.5} /> : <VolumeX size={18} strokeWidth={1.5} />}
         </button>
+
+        <div className="xc-header-more-wrap">
+          <button
+            data-testid="header-more-btn"
+            onClick={() => setMoreOpen((v) => !v)}
+            className="xc-header-icon-btn"
+            aria-label="More"
+          >
+            <MoreVertical size={18} strokeWidth={1.5} />
+          </button>
+          <HeaderMenu
+            open={moreOpen}
+            onClose={() => setMoreOpen(false)}
+            onClearChat={() => {
+              setMoreOpen(false);
+              onClearChat?.();
+            }}
+          />
+        </div>
+
         <button
           data-testid="chat-menu-btn"
           onClick={onMenuOpen}

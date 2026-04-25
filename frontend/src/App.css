@@ -1063,6 +1063,227 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
 .xc-chat-messages::-webkit-scrollbar-track { background: transparent; }
 .xc-chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
+/* ======================================================
+   Slim You — B1..B5 styles
+   ====================================================== */
+
+/* B1: Avatar separator (mobile/tablet center alignment) */
+.xc-avatar-separator {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 1.1rem;
+  margin: 0 2px;
+  align-self: flex-start;
+  margin-top: 18px;
+  user-select: none;
+}
+@media (min-width: 769px) {
+  .xc-avatar-separator { display: none; }
+}
+
+/* B1: Quick replies chips (above input) */
+.xc-quick-replies {
+  display: flex;
+  gap: 8px;
+  padding: 8px 14px 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 5;
+}
+.xc-quick-replies::-webkit-scrollbar { display: none; }
+.xc-quick-reply-chip {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 0.5px solid rgba(60, 140, 255, 0.45);
+  background: rgba(35, 38, 42, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #e6e6e6;
+  font-size: 0.78rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.xc-quick-reply-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(60, 140, 255, 0.12);
+  color: #fff;
+}
+.xc-quick-reply-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* B4: Header more menu (⋯) popup */
+.xc-header-more-wrap { position: relative; }
+.xc-header-menu-popup {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 170px;
+  background: rgba(20, 22, 28, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 0.5px solid rgba(60, 140, 255, 0.25);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  z-index: 1500;
+}
+.xc-header-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 10px 12px;
+  background: transparent; border: none;
+  color: #e6e6e6;
+  font-family: var(--font-body); font-size: 0.85rem;
+  border-radius: 6px; cursor: pointer;
+  transition: background 0.15s;
+}
+.xc-header-menu-item:hover { background: rgba(60, 140, 255, 0.12); color: #fff; }
+
+/* B3 + B5 modals shared */
+.xc-specialist-overlay,
+.xc-auth-prompt-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  animation: xcFadeIn 0.2s ease-out;
+}
+@keyframes xcFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.xc-specialist-modal,
+.xc-auth-prompt-modal {
+  position: relative;
+  width: 100%; max-width: 380px;
+  background: rgba(20, 22, 28, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(60, 140, 255, 0.25);
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: xcSlideUp 0.25s ease-out;
+}
+@keyframes xcSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.xc-specialist-close,
+.xc-auth-prompt-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none;
+  color: rgba(255, 255, 255, 0.5);
+  border-radius: 50%; cursor: pointer;
+  transition: all 0.2s;
+}
+.xc-specialist-close:hover,
+.xc-auth-prompt-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.xc-specialist-title,
+.xc-auth-prompt-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #fff;
+  margin: 0 0 4px;
+  padding-right: 30px;
+}
+.xc-auth-prompt-desc {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 18px;
+  line-height: 1.4;
+}
+.xc-specialist-options,
+.xc-auth-prompt-options {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 18px;
+}
+.xc-specialist-option,
+.xc-auth-prompt-option {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 13px 16px;
+  background: rgba(35, 38, 42, 0.7);
+  border: 0.5px solid rgba(60, 140, 255, 0.4);
+  border-radius: 10px;
+  color: #e6e6e6;
+  font-family: var(--font-body); font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.xc-specialist-option:hover,
+.xc-auth-prompt-option:hover {
+  border-color: var(--accent);
+  background: rgba(60, 140, 255, 0.12);
+  color: #fff;
+}
+.xc-auth-prompt-guest {
+  margin-top: 4px;
+  background: transparent; border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.2);
+  text-underline-offset: 3px;
+}
+.xc-auth-prompt-guest:hover { color: #fff; }
+
+.xc-specialist-form {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 18px;
+}
+.xc-specialist-input {
+  width: 100%; padding: 11px 14px;
+  background: rgba(35, 38, 42, 0.7);
+  border: 0.5px solid rgba(60, 140, 255, 0.35);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-body); font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.xc-specialist-input:focus { border-color: var(--accent); }
+.xc-specialist-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+.xc-specialist-textarea { resize: vertical; min-height: 60px; }
+.xc-specialist-submit {
+  margin-top: 4px;
+  padding: 12px;
+  background: var(--accent, #3c8cff);
+  border: none; border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-body); font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.xc-specialist-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.xc-specialist-done {
+  margin-top: 18px;
+  padding: 16px;
+  background: rgba(0, 255, 136, 0.08);
+  border: 0.5px solid rgba(0, 255, 136, 0.3);
+  border-radius: 10px;
+  color: #b0f0ce;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+
 /* Responsive */
 @media (max-width: 480px) {
   .xc-chat-header { height: 60px; padding: 0 10px; }

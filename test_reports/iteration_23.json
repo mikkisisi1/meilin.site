@@ -1,0 +1,44 @@
+{
+  "summary": "Iteration 23 (B1-B5 redesign) PASSED on backend (7/7 pytest) and on frontend smoke for B1-B4. Backend: DELETE /api/chat/messages and POST /api/specialist/request both correctly require auth (401 without token), and once authenticated they (a) clear ONLY chat_messages (deleted_count returned, intake/language/profile preserved on the user document — verified via direct Mongo read after the call) and (b) persist a specialist_requests doc with status='new', defaulting channel='form', honoring full payload (name/contact/note/channel) and rejecting missing contact with 422. Frontend smoke (mobile 390x844, https://slim-you.preview.emergentagent.com/chat): B1 ChatHeader renders with chat-back-btn left, avatar-leon-btn / avatar-kylie-btn centered, tts-toggle-btn + header-more-btn + chat-menu-btn right; quick-replies correctly HIDDEN before voice pick AND during intake. B2 burger panel exposes all 6 new items: menu-language-toggle, menu-account, menu-talk-specialist, menu-about-clinic, menu-pricing, menu-get-app. B3 menu-talk-specialist opens specialist-modal with all 3 channels (whatsapp/call/form-btn), specialist-form fills+submits with only contact provided and renders specialist-done. B4 header-more-btn opens header-menu-popup with clear-chat-btn; on confirm dialog accept it calls DELETE /api/chat/messages, starts new session and shows the Leon greeting again (verified visually on screenshot). B5 AuthPromptModal + B1 quick-replies-post-intake were not live-exercised because they require completing the full 13-question intake (more than the 6 stated in the spec) end-to-end with live LLM calls — both are wired correctly per code review (ChatPage.jsx lines 36-37, 347-355, 359-367, 505-506).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "ChatPage initial load", "issues": ["Pre-existing console errors carry over from iter22: 'TTS greeting cache miss: Failed to fetch' (twice). Non-blocking — runtime TTS via /api/tts works."]},
+      {"screen": "ChatPage mobile bottom", "issues": ["A 'The app is smoother / Install' PWA banner overlaps the bottom of the chat viewport on first load and partially blocks the input bar on mobile. Auto-dismisses for testing but worth checking real-user flow to ensure it doesn't block initial input."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration23_b1_b5.py",
+    "/app/test_reports/pytest/pytest_results_iter23.xml"
+  ],
+  "action_items": [
+    "(Spec/copy) The review request says intake = 6 questions, but /app/frontend/src/config/intakeQuestions.js defines 13 questions (q2..q14). Confirm whether this is the new intended count (the older spec mentioned 6).",
+    "(Optional) Live-validate B5 AuthPromptModal autoshow + B1 QuickReplies post-intake by walking the full 13-question intake in a manual session — the wiring is correct in code, but no automated end-to-end run was performed."
+  ],
+  "critical_code_review_comments": [
+    "routes/chat.py DELETE /chat/messages (line 738) correctly uses get_current_user (raises 401 without token), deletes ONLY db.chat_messages by user_id, and additionally evicts in-memory chat_histories + session_photo_count entries owned by this user. Profile (db.users) and intake fields are NOT touched — verified via fixture reading the user doc after the call.",
+    "routes/chat.py POST /specialist/request (line 761) correctly uses Pydantic validation: contact is required (FastAPI returns 422 if missing), name/note/channel are optional with proper trimming + max-length truncation (120/1000/200 chars). Doc is stored with status='new', channel defaults to 'form', and includes user_id + created_at. No issue.",
+    "ChatHeader.jsx layout matches B1 spec exactly: back-btn (left), avatar group with Leon•Kylie center (avatar-leon-btn/avatar-kylie-btn + thinking-dot indicators), and tts-toggle-btn + header-more-btn + chat-menu-btn on the right.",
+    "BurgerMenu.jsx menu items match B2 spec exactly (Language, My Account, Talk to a Specialist, About Clinic, Pricing, Get App) — all six have data-testid attributes and the older miron/oksana avatars are gone as stated.",
+    "ChatPage.jsx handleClearChat (line 326): correctly awaits apiClient.delete('/chat/messages') with try/catch, then stops TTS, starts new session, and re-injects greeting only if activeVoice is set. window.confirm gating works. Toast on success.",
+    "ChatPage.jsx B5 useEffect (line 347): correctly gates on intakeStep===-2 && isGuest && !authPromptShown with 1.5s delay and clears timeout on cleanup; sets authPromptShown=true so it only fires once per session — code is correct, not live-validated due to intake length.",
+    "ChatPage.jsx showQuickReplies (line 359): proper composite gate — voiceChosen && intakeStep===-2 && !isIntakePending && !loading && !isListening && !showRunningText && !input.trim(). isIntakePending derived from messages.some((m) => m.intakeQuestion && !m.intakeAnswered) — robust.",
+    "AuthPromptModal.jsx: 4 buttons present with correct testids (auth-google-btn, auth-apple-btn, auth-whatsapp-btn, auth-guest-btn) plus auth-prompt-close-btn. Returns null when !open, so it correctly will not appear in DOM until triggered.",
+    "SpecialistContactModal.jsx submit form sends to /api/specialist/request — verified backend persists the doc; frontend renders specialist-done message after success."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration23_b1_b5.py",
+    "/app/test_reports/pytest/pytest_results_iter23.xml",
+    "/app/test_reports/iteration_23.json"
+  ],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "100% of in-scope smoke (B1 header layout, B1 quick-replies hidden pre/during intake, B2 burger items, B3 specialist whatsapp/call/form + done, B4 header-more popup + clear-chat → greeting)"},
+  "test_credentials": {"guest": "POST /api/auth/guest — anonymous flow"},
+  "seed_data_creation": "TEST_iter23 chat_messages doc + intake stub on a guest user (cleaned by the clear-chat call itself); TEST_iter23* specialist_requests rows cleaned in TestSpecialistRequest.teardown_class.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "mocked_apis": {"openrouter_llm": "not exercised in iter23", "fish_audio_tts": "not exercised in iter23"},
+  "context_for_next_testing_agent": "iter23 covers B1-B5. Backend tests live at /app/backend/tests/test_iteration23_b1_b5.py — re-run if routes/chat.py @router.delete('/chat/messages') (line 738+) or @router.post('/specialist/request') (line 761+) change, or if SpecialistRequestPayload is modified. Frontend testids in scope: chat-header, chat-back-btn, avatar-leon-btn, avatar-kylie-btn, tts-toggle-btn, header-more-btn, chat-menu-btn, quick-replies, burger-menu (+ menu-language-toggle/account/talk-specialist/about-clinic/pricing/get-app), specialist-modal (+ whatsapp/call/form-btn, contact-input, submit-btn, done, close-btn), header-menu-popup (+ clear-chat-btn), auth-prompt-modal (+ google/apple/whatsapp/guest-btn). B5 AuthPromptModal + B1 QuickReplies post-intake were not live-exercised — to test end-to-end you must walk through 13 intake questions (q2..q14 in /app/frontend/src/config/intakeQuestions.js — note the spec mistakenly said 6) and wait ~1.5s; the modal should auto-show for guests once.",
+  "rca_of_issue": "N/A — no failures."
+}
