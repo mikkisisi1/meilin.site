@@ -17,7 +17,7 @@ Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-P
 
 ## 🔒 PERMANENT PROJECT RULES (apply to ALL future updates)
 1. **Always-fresh PWA** — users MUST see the latest deployed version on every revisit. Service Worker `/frontend/public/sw.js` uses network-first for HTML + assets, passes-through `/api/*`. Registration in `index.html` calls `reg.update()` on load and auto-reloads on `controllerchange`. **Never** switch to cache-first for the shell. Bump `CACHE` version when sw.js logic changes.
-2. **Voice IDs are locked to two values only.** Мирон = `5cfccfb8aae14938be283ea6400b4a8a`, Оксана = `7a98513e3a7d439682fa68f8d4da34c0`. No other voice IDs allowed anywhere in code, env, docs, or tests.
+2. **Voice IDs are locked to two values only.** Leon = `d9247a00779649adbe7f4fdde2ac11c8` (Brad Pitt), Kylie = `7a98513e3a7d439682fa68f8d4da34c0`. No other voice IDs allowed anywhere in code, env, docs, or tests.
 3. **Landing page CSS (`App.css` 🔒 LOCKED SECTION) and `voice_config.py` are NEVER edited** without explicit user request.
 
 ## Locked / Protected
@@ -38,6 +38,15 @@ Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-P
 - 2026-04-19: **Typing indicator** enhanced — avatar + 3-dot animation + localized label (`typingMiron`/`typingOksana` in 8 languages)
 - 2026-04-19: **TTS stability** — rewrote `useAudioStream.js` with clean MSE→blob fallback, handlers cleanup, silenced benign `AbortError`/`DataCloneError` from CRA HMR. Also reduced cyclomatic complexity.
 - 2026-04-19: **Landing CSS lock** — wrapped lines 70–240 in explicit 🔒 LOCKED SECTION banner
+- 2026-04-25: **Slim You rebrand (A)** — Мирон→Leon, Оксана→Kylie globally; default UI lang switched to English. Landing replaced with fullscreen looping video (`/media/landing.mp4`).
+- 2026-04-25: **Voice swap** — Leon voice ID changed from `5cfccfb8aae14938be283ea6400b4a8a` to `d9247a00779649adbe7f4fdde2ac11c8` (Brad Pitt model from fish.audio).
+- 2026-04-25: **Cleanup** — deleted unused `miron-avatar.jpg`, `oksana-avatar.jpg`, `landing.webm`. New avatars: `leon-avatar.jpg` (Brad Pitt-like senior man), `kylie-avatar.jpg` (warm brunette woman).
+- 2026-04-25: **Slim You B1–B5 redesign** — completed in one pass (backend 7/7 pytest, frontend smoke OK):
+  - B1: ChatHeader rebuilt — back-btn left, `Leon • Kylie` avatars centered, TTS + ⋯ + burger right. New `QuickReplies` chip bar (`I feel good / Need support / Ask about food`) shown only after intake completes.
+  - B2: BurgerMenu restructured to spec — Language, My Account, Talk to a Specialist, About Clinic, Pricing, Get App. `Get App` triggers PWA install prompt or "Coming soon" toast.
+  - B3: New `SpecialistContactModal` with 3 channels (WhatsApp wa.me link, tel: call, contact form). New backend endpoint `POST /api/specialist/request` persists to `specialist_requests` collection.
+  - B4: New `HeaderMenu` (⋯ popup) with `Clear chat`. New backend endpoint `DELETE /api/chat/messages` — wipes chat_messages + in-memory session histories ONLY; keeps users/profile/intake intact.
+  - B5: New `AuthPromptModal` — auto-shown 1.5s after intake completes, **only for guests**, only **once** per session. 4 buttons: Continue with Google (→ /auth), Apple (Coming soon toast), WhatsApp (Coming soon toast), Continue as Guest (close modal).
 - 2026-04-19: **i18n pass #2** — fixed hardcoded Russian strings: ChatPage alert & greeting pre-cache (now uses current `lang`), useChat error message, useSpeechRecognition alerts (3 places), PaymentSuccess fallback strings, BookingCalendar (legend/tz/price unit/month/weekday names). Added translation keys: `errorTryAgain`, `bookingFailed`, `advance` across 8 languages. `ChatInputArea` now accepts `unsupportedTitle` prop. Iter-18 verified OK; zh missing keys patched by tester.
 - 2026-04-19: **PWA install flow** — added `manifest.json` (Miro.Care icons 192/512 + maskable), minimal service worker (`sw.js`) with shell cache + network-first for /api/. Replaced v2 SW-unregister script with v3 that keeps SW alive. Added `InstallPrompt` component: appears 12s after landing load (unless `display-mode: standalone` or dismissed), uses `beforeinstallprompt` + `appinstalled` native API, has install spinner + progress bar + success checkmark, 7-day dismiss cooldown. Localized in 8 languages (`installTitle`, `installSubtitle`, `installCta`, `installing`, `installed`, `installRetry`, `close`). RTL-aware close button.
 - 2026-02-xx (iter21): **SYSTEM_PROMPT extended** — добавлены 4 новых блока между определением Mode 2 и «ЛОГИКА ВЕДЕНИЯ ДИАЛОГА» в `/app/backend/config.py`:
