@@ -58,7 +58,7 @@ export default function useChat(user, lang, refreshUser, onAIMessage, activeVoic
         session_id: sessionIdRef.current,
         problem: user?.selected_problem,
         language: lang,
-        voice: activeVoice || user?.selected_voice || 'male',
+        voice: activeVoice || user?.selected_voice || 'female',
       });
 
       const aiMsg = {
@@ -92,7 +92,7 @@ export default function useChat(user, lang, refreshUser, onAIMessage, activeVoic
             session_id: sessionIdRef.current,
             problem: user?.selected_problem,
             language: lang,
-            voice: activeVoice || user?.selected_voice || 'male',
+            voice: activeVoice || user?.selected_voice || 'female',
           });
           const aiMsg = {
             role: 'ai',

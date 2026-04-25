@@ -151,15 +151,15 @@ const translations = {
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => {
-    // Force Russian as default; reset old 'en' default for existing users
+    // Default language is English (Slim You rebrand). Migration v3 forces 'en' for existing users on first load.
     const saved = localStorage.getItem('miro_language');
-    const migrated = localStorage.getItem('miro_lang_v2');
+    const migrated = localStorage.getItem('miro_lang_v3');
     if (!migrated) {
-      localStorage.setItem('miro_lang_v2', '1');
-      localStorage.setItem('miro_language', 'ru');
-      return 'ru';
+      localStorage.setItem('miro_lang_v3', '1');
+      localStorage.setItem('miro_language', 'en');
+      return 'en';
     }
-    return saved || 'ru';
+    return saved || 'en';
   });
 
   useEffect(() => {

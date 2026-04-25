@@ -17,8 +17,8 @@ import apiClient, { API_BASE, getToken } from '@/lib/apiClient';
 import { INTAKE_QUESTIONS, INTAKE_INTRO, INTAKE_OUTRO, nextIntakeStep, buildIntakeSummary } from '@/config/intakeQuestions';
 
 const GREETINGS = {
-  male: 'Здравствуйте, я Мирон — ваш личный консультант.\nРасскажите в двух словах, что вас беспокоит, и мы вместе попробуем разобраться.\nКак мне к вам обращаться?',
-  female: 'Здравствуйте, я Оксана — ваш личный консультант.\nРасскажите в двух словах, что вас беспокоит, и мы вместе попробуем разобраться.\nКак мне к вам обращаться?',
+  male: "Hi, I'm Leon — I'm here to support you.\nHow are you feeling today?",
+  female: "Hi, I'm Kylie — I'm here to support you.\nHow are you feeling today?",
 };
 
 const getLangGreeting = (lang, voice) => getGreeting(lang, voice) || GREETINGS[voice];
@@ -62,7 +62,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (historyLoaded && messages.length > 0 && !voiceChosen) {
       setVoiceChosen(true);
-      setActiveVoice(user?.selected_voice || 'male');
+      setActiveVoice(user?.selected_voice || 'female');
     }
   }, [historyLoaded, messages.length, voiceChosen, user?.selected_voice]);
 

@@ -26,9 +26,9 @@ export default function AboutPage() {
         </div>
 
         <div className="about-expert">
-          <img src={MIRON_PHOTO} alt="Miron Shakira" className="about-expert-photo" />
+          <img src={MIRON_PHOTO} alt="Leon Shakira" className="about-expert-photo" />
           <div>
-            <h3>{t('expert')}: Miron Shakira</h3>
+            <h3>{t('expert')}: Leon Shakira</h3>
             <p>Psychologist, Dietologist, Nutritionist (ISSA USA)</p>
           </div>
         </div>
@@ -40,7 +40,7 @@ export default function AboutPage() {
               <Mail size={20} />
               <span>support@miro.care</span>
             </a>
-            <a href="https://shakiramiron.taplink.ws" target="_blank" rel="noopener noreferrer" className="about-link-card">
+            <a href="https://shakiraleon.taplink.ws" target="_blank" rel="noopener noreferrer" className="about-link-card">
               <ExternalLink size={20} />
               <span>TapLink</span>
             </a>

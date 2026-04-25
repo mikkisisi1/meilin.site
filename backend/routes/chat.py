@@ -63,7 +63,7 @@ class ChatRequest(BaseModel):
     agent_id: Optional[str] = None
     language: Optional[str] = "ru"
     problem: Optional[str] = None
-    voice: Optional[str] = None  # "male" (Мирон) | "female" (Оксана) — для корректного рода в ответе
+    voice: Optional[str] = None  # "male" (Leon) | "female" (Kylie) — для корректного рода в ответе
 
 
 class ChatImageRequest(BaseModel):
@@ -302,27 +302,29 @@ async def _handle_search_tag(session_id: str, ai_text: str) -> str:
 
 async def _init_session(session_id: str, problem: Optional[str], language: str, user_id: Optional[str], voice: Optional[str] = None) -> None:
     """Initialize or update chat session with system prompt."""
-    language = language or "ru"
+    language = language or "en"
     problem_context = find_problem_context(problem)
     personal_context = await load_personal_context(user_id)
     lang_instruction = f"\n\nОтвечай на языке: {language}"
 
-    # Гендерная директива — чтобы Мирон не говорил о себе в женском роде, а Оксана в мужском.
-    # Ставим В НАЧАЛО системного промпта — Claude лучше следует первым инструкциям.
-    voice = (voice or "male").lower()
+    # Gender / persona directive — keeps Leon (male) and Kylie (female) consistent across languages.
+    # Placed at the very start of the system prompt — Claude best follows the first instructions.
+    voice = (voice or "female").lower()
     if voice == "female":
         persona_directive = (
-            "🔒 ТВОЯ ЛИЧНОСТЬ:\n"
-            "Тебя зовут Оксана. Говори о себе в женском роде: «я рада», «я поняла», «я услышала», «я подумала», «я хотела бы».\n"
-            "Если пользователь прямо спросит как тебя зовут — ответь «Меня зовут Оксана». Иначе не представляйся лишний раз.\n"
-            "НЕ объявляй «я женщина-психолог», «я психолог» — это и так очевидно из контекста. Просто будь собой.\n\n"
+            "🔒 YOUR IDENTITY:\n"
+            "Your name is Kylie. You identify as female. In any language with grammatical gender, "
+            "speak about yourself in the feminine form.\n"
+            "If the user directly asks your name — answer \"My name is Kylie\". Otherwise do not re-introduce yourself.\n"
+            "Do NOT announce \"I am a female counselor\" — it is already obvious from context. Just be yourself.\n\n"
         )
     else:
         persona_directive = (
-            "🔒 ТВОЯ ЛИЧНОСТЬ:\n"
-            "Тебя зовут Мирон. Говори о себе в мужском роде: «я рад», «я понял», «я услышал», «я подумал», «я хотел бы».\n"
-            "Если пользователь прямо спросит как тебя зовут — ответь «Меня зовут Мирон». Иначе не представляйся лишний раз.\n"
-            "НЕ объявляй «я мужчина-психолог», «я психолог» — это и так очевидно из контекста. Просто будь собой.\n\n"
+            "🔒 YOUR IDENTITY:\n"
+            "Your name is Leon. You identify as male. In any language with grammatical gender, "
+            "speak about yourself in the masculine form.\n"
+            "If the user directly asks your name — answer \"My name is Leon\". Otherwise do not re-introduce yourself.\n"
+            "Do NOT announce \"I am a male counselor\" — it is already obvious from context. Just be yourself.\n\n"
         )
 
     system_msg = persona_directive + SYSTEM_PROMPT + SEARCH_INSTRUCTION + problem_context + personal_context + lang_instruction

@@ -20,24 +20,24 @@ export default function ChatHeader({
           <button
             className={`xc-chat-avatar-item ${!voiceChosen ? 'xc-avatar-selectable' : ''} ${activeVoice === 'male' ? 'xc-avatar-active' : ''} ${voiceChosen && activeVoice !== 'male' ? 'xc-avatar-dim' : ''}`}
             onClick={() => onVoiceSelect('male')}
-            data-testid="avatar-miron-btn"
+            data-testid="avatar-leon-btn"
           >
             <div className="xc-chat-avatar-wrapper">
-              <img src="/miron-avatar.jpg" alt="Miron" className="xc-chat-avatar-img" />
-              {activeVoice === 'male' && isBusy && <span className="xc-chat-thinking-dot" data-testid="thinking-dot-miron" />}
+              <img src="/leon-avatar.jpg" alt="Leon" className="xc-chat-avatar-img" />
+              {activeVoice === 'male' && isBusy && <span className="xc-chat-thinking-dot" data-testid="thinking-dot-leon" />}
             </div>
-            <span className="xc-avatar-name">Miron</span>
+            <span className="xc-avatar-name">Leon</span>
           </button>
           <button
             className={`xc-chat-avatar-item ${!voiceChosen ? 'xc-avatar-selectable' : ''} ${activeVoice === 'female' ? 'xc-avatar-active' : ''} ${voiceChosen && activeVoice !== 'female' ? 'xc-avatar-dim' : ''}`}
             onClick={() => onVoiceSelect('female')}
-            data-testid="avatar-oksana-btn"
+            data-testid="avatar-kylie-btn"
           >
             <div className="xc-chat-avatar-wrapper">
-              <img src="/oksana-avatar.jpg" alt="Oksana" className="xc-chat-avatar-img" />
-              {activeVoice === 'female' && isBusy && <span className="xc-chat-thinking-dot" data-testid="thinking-dot-oksana" />}
+              <img src="/kylie-avatar.jpg" alt="Kylie" className="xc-chat-avatar-img" />
+              {activeVoice === 'female' && isBusy && <span className="xc-chat-thinking-dot" data-testid="thinking-dot-kylie" />}
             </div>
-            <span className="xc-avatar-name">Oksana</span>
+            <span className="xc-avatar-name">Kylie</span>
           </button>
         </div>
       </div>

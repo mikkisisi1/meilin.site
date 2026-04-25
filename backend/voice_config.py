@@ -6,7 +6,7 @@
 Любые изменения могут сломать эмпатичную манеру речи агентов.
 
 ЗАПРЕЩЕНО ИЗМЕНЯТЬ:
-- Voice IDs (Мирон и Оксана)
+- Voice IDs (Leon и Kylie)
 - Prosody параметры (speed, volume)
 - Эмоциональные маркеры
 - Правила очистки текста
@@ -30,8 +30,8 @@ FISH_LATENCY = os.environ.get("FISH_LATENCY", "balanced")
 # ========== ГОЛОСА АГЕНТОВ ==========
 # 🔒 НЕ ИЗМЕНЯТЬ: ID референсных голосов для агентов
 VOICE_IDS = {
-    "male": os.environ.get("FISH_VOICE_MALE", "5cfccfb8aae14938be283ea6400b4a8a"),      # Мирон (мужской)
-    "female": os.environ.get("FISH_VOICE_FEMALE", "7a98513e3a7d439682fa68f8d4da34c0"),  # Оксана (женский)
+    "male": os.environ.get("FISH_VOICE_MALE", "5cfccfb8aae14938be283ea6400b4a8a"),      # Leon (мужской)
+    "female": os.environ.get("FISH_VOICE_FEMALE", "7a98513e3a7d439682fa68f8d4da34c0"),  # Kylie (женский)
 }
 
 # ========== PROSODY НАСТРОЙКИ ==========
@@ -94,5 +94,5 @@ def validate_voice_id(voice: str) -> str:
     🔒 НЕ ИЗМЕНЯТЬ ЭТУ ФУНКЦИЮ
     """
     if voice not in VOICE_IDS:
-        return VOICE_IDS["male"]  # Мирон по умолчанию
+        return VOICE_IDS["female"]  # Kylie по умолчанию
     return VOICE_IDS[voice]

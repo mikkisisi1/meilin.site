@@ -19,13 +19,13 @@ export default function SpecialistsPage() {
         <h1>{t('specialists')}</h1>
       </header>
 
-      <div className="expert-card-featured" data-testid="expert-card-miron">
+      <div className="expert-card-featured" data-testid="expert-card-leon">
         <div className="expert-photos">
-          <img src={MIRON_PHOTO} alt="Miron Shakira" className="expert-photo-main" />
-          <img src={MIRON_PHOTO_2} alt="Miron Shakira" className="expert-photo-secondary" />
+          <img src={MIRON_PHOTO} alt="Leon Shakira" className="expert-photo-main" />
+          <img src={MIRON_PHOTO_2} alt="Leon Shakira" className="expert-photo-secondary" />
         </div>
         <div className="expert-info">
-          <h2 className="expert-name">Miron Shakira</h2>
+          <h2 className="expert-name">Leon Shakira</h2>
           <p className="expert-title">
             <Award size={16} />
             Dietologist, Nutritionist | Psychologist
@@ -55,7 +55,7 @@ export default function SpecialistsPage() {
             Specializes in psychology of weight loss and eating behavior. Consults families of political elites, businessmen, and entertainment industry.
           </p>
           <a
-            href="https://shakiramiron.taplink.ws"
+            href="https://shakiraleon.taplink.ws"
             target="_blank"
             rel="noopener noreferrer"
             className="expert-link"

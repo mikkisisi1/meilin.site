@@ -110,11 +110,11 @@ async def text_to_speech(req: TTSRequestModel, request: Request):
     text = add_emotion_markers(text)
 
     # 🔒 Валидация voice ID
-    voice_id = validate_voice_id(req.voice or "male")
+    voice_id = validate_voice_id(req.voice or "female")
 
     logger.info(f"TTS Request | Voice: {req.voice} | VoiceID: {voice_id[:8]}… | Text length: {len(text)} | Backend: {FISH_BACKEND} | Latency: {FISH_LATENCY} | Speed: {PROSODY_CONFIG['speed']}")
     if req.voice not in ("male", "female"):
-        logger.warning(f"TTS Request with UNKNOWN voice='{req.voice}' — fell back to Miron (male). Frontend bug?")
+        logger.warning(f"TTS Request with UNKNOWN voice='{req.voice}' — fell back to Kylie (female). Frontend bug?")
 
     def generate_audio():
         """

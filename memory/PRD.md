@@ -55,6 +55,17 @@ Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-P
   6. CSS: расширил `.xc-image-picker-modal` (180×140), добавил `.xc-image-picker-privacy` + `.xc-chat-message-image-caption` — лендинг CSS (строки 70–240) не тронут.
   Регрессия iteration_22: backend 10/10 pytest, frontend smoke 100%. Claude Sonnet 4.5 Vision: 2-й ответ в той же сессии отличается от 1-го (comparison-mode работает), и AI не использует «ожирение / диагноз / идеал» (запреты соблюдаются).
 - 2026-04-25: **Landing → fullscreen video** — старый лендинг (фото Мирона + glass-panel + бургер) полностью заменён на fullscreen зацикленное видео. Файлы в `/app/frontend/public/media/`: `landing.mp4` (1.1 MB, H.264, +faststart, без аудио), `landing.webm` (870 KB, VP9), `landing-poster.jpg` (первый кадр, 57 KB). Видео: `autoPlay muted loop playsInline preload="auto"`, `object-fit: contain` (без обрезки), чёрный фон. Поверх кнопки «BEGIN» в видео — прозрачная кнопка `[data-testid=landing-cta-overlay]` (~72vw × 9vh, bottom 8%) → `/chat`. Клик по самому видео тоже ведёт в чат. `LandingPage.jsx` переписан под новый минималистичный layout. Лендинг-CSS в `App.css` (строки 70–240) НЕ тронут — старые классы `.landing-*` остаются, но больше не используются. Smoke-test: видео грузится, прозрачная кнопка кликабельна, переход на `/chat` подтверждён.
+- 2026-04-25: **Rebrand Step A — Leon / Kylie + English default** (Slim You spec):
+  • Все упоминания `Мирон / Miron` заменены на `Leon`, `Оксана / Oksana` — на `Kylie` в `backend/{config,voice_config,server,routes/chat,routes/tts}.py`, frontend `pages/{ChatPage,SpecialistsPage,VoiceSelect,AboutPage}.jsx`, `components/chat/*`, `contexts/translations-extra.js`. Также заменены транслитерации в zh/es/ar/hi (米伦/奥克萨娜/Mirón/ميرون/أوكسانا/मिरोन/ओक्साना → Leon/Kylie).
+  • Аватары: добавлены `/leon-avatar.jpg` и `/kylie-avatar.jpg` (копии существующих изображений), все ссылки в коде обновлены.
+  • i18n-ключи `typingMiron/typingOksana` переименованы в `typingLeon/typingKylie` во всех 8 языках.
+  • Дефолтный язык: `LanguageContext` — миграция `miro_lang_v3` ставит `en` как default (старые пользователи получат `en` при первой загрузке после деплоя).
+  • Дефолтный агент: `Kylie (female)` — обновлены `ChatPage.setActiveVoice`, `useChat.voice`, `useAudioStream.voice`, `voice_config.get_voice_id` fallback, `tts.py` log fallback, `chat.py` persona-directive default.
+  • Английский greeting обновлён под спек: «Hi, I'm Leon/Kylie — I'm here to support you. How are you feeling today?»; switch-greeting: «Good to see you again. Let's continue. — Leon/Kylie».
+  • Persona-directive в `routes/chat.py` переписан с русского на английский (для cross-language согласованности): «Your name is Leon/Kylie. You identify as male/female. In any language with grammatical gender, speak in masculine/feminine form».
+  • Voice IDs (Fish Audio Мирон/Оксана hash) НЕ тронуты — locked rule соблюдён.
+  • Голосовая запись/MP3 lookup идёт по ключам `male/female` — переименование имён их не затрагивает.
+  • Lint: backend ruff ✅, frontend ESLint ✅. Smoke: chat preview показывает аватары `LEON / KYLIE`, lang=`en`.
 
 ## Testing Status
 - Iteration 17 (backend+frontend): **100% pass** — 12/12 scenarios including 8 languages, gender switching, encryption, TTS, UI flows

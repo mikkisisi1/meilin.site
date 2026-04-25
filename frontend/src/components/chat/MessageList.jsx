@@ -8,8 +8,8 @@ export default function MessageList({ messages, loading, playingTTS, playTTS, st
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const typingLabel = activeVoice === 'female' ? t('typingOksana') : t('typingMiron');
-  const typingAvatar = activeVoice === 'female' ? '/oksana-avatar.jpg' : '/miron-avatar.jpg';
+  const typingLabel = activeVoice === 'female' ? t('typingKylie') : t('typingLeon');
+  const typingAvatar = activeVoice === 'female' ? '/kylie-avatar.jpg' : '/leon-avatar.jpg';
 
   return (
     <>

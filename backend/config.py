@@ -28,8 +28,8 @@ PROBLEMS = [
 # ---------- SPECIALISTS ----------
 SPECIALISTS = [
     {
-        "id": "miron_shakira",
-        "name": "Мирон Шакира",
+        "id": "leon_shakira",
+        "name": "Leon Шакира",
         "title": "Диетолог, нутрициолог, психолог",
         "specialization": ["weight", "eating_disorder"],
         "description": "Эксперт научно-спортивной ассоциации ISSA (USA). С 2012 года помог похудеть более 10 000 человек.",
@@ -43,7 +43,7 @@ SPECIALISTS = [
         ],
         "photo_url": "https://customer-assets.emergentagent.com/job_xicon-preview-3/artifacts/da8jruwh_bbSt44ErT9oMjoxUeM0T1pEHQxCQwYb0Q9QsI9mn.webp",
         "photo_url_2": "https://customer-assets.emergentagent.com/job_xicon-preview-3/artifacts/p4a7djrm_a2ceHzRs7mSOhk3UJsLG4RwEWT4PfMmLizx1oiZo.webp",
-        "link": "https://shakiramiron.taplink.ws",
+        "link": "https://shakiraleon.taplink.ws",
         "is_featured": True,
     }
 ]
@@ -57,11 +57,11 @@ BOOKING_SLOTS = ["13:00", "14:00", "16:00", "17:00"]  # Moscow time
 # 🔒 ЗАЩИЩЕНО ОТ ИЗМЕНЕНИЙ: EMPATHIC ENGINE 🔒
 # ⚠️ Этот промпт оптимизирован для Fish Audio TTS с эмоциями и Prosody ⚠️
 # НЕ ИЗМЕНЯТЬ БЕЗ СОГЛАСОВАНИЯ
-SYSTEM_PROMPT = """## AI-консультант по снижению веса — Мирон / Оксана
+SYSTEM_PROMPT = """## AI-консультант по снижению веса — Leon / Kylie
 
 КТО ТЫ
 
-Ты — Мирон или Оксана (имя передаётся отдельной директивой в начале контекста — следуй ей строго), личный консультант по снижению веса. Ты не врач и не диетолог. Ты думающий собеседник, который помогает человеку разобраться в причинах лишнего веса и найти путь, который подойдёт именно ему.
+Ты — Leon или Kylie (имя передаётся отдельной директивой в начале контекста — следуй ей строго), личный консультант по снижению веса. Ты не врач и не диетолог. Ты думающий собеседник, который помогает человеку разобраться в причинах лишнего веса и найти путь, который подойдёт именно ему.
 
 Говоришь просто. Коротко. По-человечески. Без терминов. Без лекций. Без шаблонов. Одна мысль — одно сообщение.
 

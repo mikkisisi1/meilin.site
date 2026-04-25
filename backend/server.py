@@ -105,7 +105,7 @@ async def shutdown_db_client():
 # ---------- CORS & ROUTER ----------
 app.include_router(api_router)
 
-# Static greetings (pre-rendered MP3 in Oksana/Miron voice, served via CDN cache)
+# Static greetings (pre-rendered MP3 in Kylie/Leon voice, served via CDN cache)
 STATIC_DIR = ROOT_DIR / "static"
 if STATIC_DIR.exists():
     app.mount("/api/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

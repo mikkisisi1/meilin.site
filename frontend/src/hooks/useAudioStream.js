@@ -104,7 +104,7 @@ export default function useAudioStream(user, audioElementRef) {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ text, voice: voiceOverride || user?.selected_voice || 'male' }),
+        body: JSON.stringify({ text, voice: voiceOverride || user?.selected_voice || 'female' }),
         signal: controller.signal,
       });
 
