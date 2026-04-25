@@ -1,55 +1,68 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { Menu } from 'lucide-react';
-import BurgerMenu from '@/components/BurgerMenu';
-
-const MIRON_PHOTO = 'https://customer-assets.emergentagent.com/job_471ad105-27b6-4b16-a680-2ec9de6a061a/artifacts/ija0kf5g_grok_image_1776410408510.jpg';
 
 export default function LandingPage() {
-  const { t } = useLanguage();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const goToChat = () => navigate('/chat');
 
   return (
-    <div className="landing" data-testid="landing-page">
-      <img src={MIRON_PHOTO} alt="Miron Shakira" className="landing-photo" />
-
+    <div
+      className="landing-video-root"
+      data-testid="landing-page"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        width: '100vw',
+        height: '100vh',
+        background: '#000',
+        overflow: 'hidden',
+        margin: 0,
+        padding: 0,
+      }}
+    >
+      <video
+        data-testid="landing-video"
+        src="/media/landing.mp4"
+        poster="/media/landing-poster.jpg"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+        controlsList="nodownload nofullscreen noremoteplayback"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          background: '#000',
+        }}
+        onClick={goToChat}
+      />
       <button
-        className="landing-burger-btn"
-        data-testid="landing-burger-btn"
-        onClick={() => setMenuOpen(true)}
-        aria-label="Menu"
-      >
-        <Menu size={24} strokeWidth={1.5} />
-      </button>
-
-      <div className="landing-brand" data-testid="landing-title" translate="no">
-        <span className="landing-brand-miro" lang="en">MIRO</span>
-        <span className="landing-brand-care" lang="en">CARE</span>
-      </div>
-
-      <div className="landing-glass" data-testid="landing-glass-panel">
-        <div className="landing-credentials" data-testid="landing-credentials">
-          <p className="landing-credentials-name">Miron Shakira</p>
-          <ul className="landing-credentials-list">
-            <li>Диетолог, нутрициолог</li>
-            <li>Психолог (специализация избыточный вес)</li>
-            <li>Эксперт научно-спортивной ассоциации №1 в мире | ISSA (USA)</li>
-          </ul>
-        </div>
-        <p className="landing-glass-desc">{t('missionText')}</p>
-        <button
-          data-testid="landing-start-btn"
-          onClick={() => navigate('/chat')}
-          className="landing-glass-cta"
-        >
-          <span className="landing-cta-glow" />
-          {t('ctaButton')}
-        </button>
-      </div>
-
-      <BurgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+        type="button"
+        data-testid="landing-cta-overlay"
+        aria-label="Перейти в чат"
+        onClick={goToChat}
+        style={{
+          position: 'absolute',
+          left: '50%',
+          bottom: '8%',
+          transform: 'translateX(-50%)',
+          width: 'min(72vw, 360px)',
+          height: 'clamp(56px, 9vh, 88px)',
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          padding: 0,
+          margin: 0,
+          cursor: 'pointer',
+          WebkitTapHighlightColor: 'transparent',
+          zIndex: 2,
+        }}
+      />
     </div>
   );
 }

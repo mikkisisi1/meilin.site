@@ -32,7 +32,7 @@ class TestPaymentFlow:
         """Test tariff activates immediately, sets test_used=true, minutes_left=3"""
         response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "test",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
@@ -56,14 +56,14 @@ class TestPaymentFlow:
         # First use test tariff
         response1 = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "test",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response1.status_code == 200, f"First test tariff failed: {response1.text}"
         
         # Second attempt should fail
         response2 = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "test",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response2.status_code == 400, f"Expected 400, got {response2.status_code}: {response2.text}"
         data = response2.json()
@@ -76,7 +76,7 @@ class TestPaymentFlow:
         """Hour tariff returns Stripe checkout URL and session_id"""
         response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "hour",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
@@ -92,7 +92,7 @@ class TestPaymentFlow:
         """Week tariff returns Stripe checkout URL and session_id"""
         response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "week",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
@@ -106,7 +106,7 @@ class TestPaymentFlow:
         """Month tariff returns Stripe checkout URL and session_id"""
         response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "month",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
@@ -120,7 +120,7 @@ class TestPaymentFlow:
         """Invalid tariff returns 400 error"""
         response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "invalid",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response.status_code == 400, f"Expected 400, got {response.status_code}: {response.text}"
         data = response.json()
@@ -134,7 +134,7 @@ class TestPaymentFlow:
         # First create a checkout session
         create_response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "hour",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert create_response.status_code == 200
         session_id = create_response.json()["session_id"]
@@ -196,7 +196,7 @@ class TestPaymentTransactionRecords:
         # Create a checkout session
         response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "hour",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response.status_code == 200
         data = response.json()
@@ -261,7 +261,7 @@ class TestIdempotency:
         # Create a checkout session
         response = self.session.post(f"{BASE_URL}/api/payments/create-checkout", json={
             "tariff_id": "hour",
-            "origin_url": "https://mindful-nutrition-6.preview.emergentagent.com"
+            "origin_url": "https://photo-wellness.preview.emergentagent.com"
         })
         assert response.status_code == 200
         session_id = response.json()["session_id"]
