@@ -189,7 +189,7 @@ class TestChatMultiLanguage:
         # Check for Cyrillic characters (Russian)
         has_cyrillic = bool(re.search(r'[а-яА-ЯёЁ]', ai_response))
         assert has_cyrillic, f"Expected Russian response, got: {ai_response[:100]}"
-        print(f"PASS: Russian language response received")
+        print("PASS: Russian language response received")
     
     def test_chat_english_response(self, guest_token):
         """POST /api/chat with language=en returns English response"""
@@ -209,7 +209,7 @@ class TestChatMultiLanguage:
         # Check for common English words
         has_english = any(word in ai_response.lower() for word in ["i", "you", "the", "is", "are", "feel", "what", "how"])
         assert has_english, f"Expected English response, got: {ai_response[:100]}"
-        print(f"PASS: English language response received")
+        print("PASS: English language response received")
     
     def test_chat_spanish_response(self, guest_token):
         """POST /api/chat with language=es returns Spanish response"""
@@ -233,7 +233,7 @@ class TestChatMultiLanguage:
         print(f"Spanish response: {ai_response[:150]}")
         # Relaxed assertion - just check we got a response
         assert len(ai_response) > 10, f"Response too short: {ai_response}"
-        print(f"PASS: Spanish language response received")
+        print("PASS: Spanish language response received")
     
     def test_chat_german_response(self, guest_token):
         """POST /api/chat with language=de returns German response"""
@@ -255,7 +255,7 @@ class TestChatMultiLanguage:
         has_german = has_german or bool(re.search(r'[äöüß]', ai_response.lower()))
         print(f"German response: {ai_response[:150]}")
         assert len(ai_response) > 10, f"Response too short: {ai_response}"
-        print(f"PASS: German language response received")
+        print("PASS: German language response received")
 
 
 class TestChatQuality:
@@ -278,12 +278,12 @@ class TestChatQuality:
         ai_response = data["message"]
         
         # Check no markdown formatting
-        assert "**" not in ai_response, f"Found bold markdown in response"
-        assert "* " not in ai_response, f"Found bullet list in response"
-        assert "- " not in ai_response or ai_response.count("- ") <= 1, f"Found dash list in response"
+        assert "**" not in ai_response, "Found bold markdown in response"
+        assert "* " not in ai_response, "Found bullet list in response"
+        assert "- " not in ai_response or ai_response.count("- ") <= 1, "Found dash list in response"
         # Check no numbered lists (1. 2. 3.)
         numbered_list = re.search(r'^\d+\.\s', ai_response, re.MULTILINE)
-        assert not numbered_list, f"Found numbered list in response"
+        assert not numbered_list, "Found numbered list in response"
         
         print(f"PASS: Response has no markdown lists. Length: {len(ai_response)} chars")
     

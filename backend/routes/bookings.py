@@ -5,7 +5,6 @@ import logging
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from bson import ObjectId
 
 from database import db
 from auth_utils import get_current_user

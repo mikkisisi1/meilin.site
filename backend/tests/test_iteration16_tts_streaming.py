@@ -159,7 +159,6 @@ class TestAuthNoRegressions:
         # API returns access_token, not token
         assert "access_token" in data or "token" in data, "No token in response"
         assert "user" in data, "No user in response"
-        token = data.get("access_token") or data.get("token")
         print(f"✓ Guest auth works, user_id: {data['user'].get('_id', 'N/A')}")
     
     def test_admin_login_works(self):
@@ -175,7 +174,7 @@ class TestAuthNoRegressions:
         # API returns access_token, not token
         assert "access_token" in data or "token" in data, "No token in response"
         assert data.get("user", {}).get("email") == ADMIN_EMAIL
-        print(f"✓ Admin login works")
+        print("✓ Admin login works")
     
     def test_chat_with_guest_token_works(self):
         """POST /api/chat with guest token should return AI response"""
@@ -227,7 +226,7 @@ class TestStaticEndpointsNoRegressions:
         # API returns {"tariffs": {...}}
         tariffs = data.get("tariffs") if isinstance(data, dict) else data
         assert tariffs is not None, "Expected tariffs data"
-        print(f"✓ /api/tariffs returns tariffs data")
+        print("✓ /api/tariffs returns tariffs data")
     
     def test_specialists_endpoint(self):
         """GET /api/specialists should return list of specialists"""

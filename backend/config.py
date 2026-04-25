@@ -1,7 +1,6 @@
 """
 Shared constants, data, and the master SYSTEM_PROMPT.
 """
-from typing import Optional
 
 # ---------- TARIFFS ----------
 TARIFFS = {

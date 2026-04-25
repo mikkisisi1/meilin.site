@@ -4,12 +4,12 @@ Includes AI logic (OpenRouter + DuckDuckGo search).
 """
 import os
 import re
-import random
+import secrets
 import asyncio
 import logging
 from collections import OrderedDict
 from datetime import datetime, timezone
-from typing import Optional, Dict
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from bson import ObjectId
@@ -139,7 +139,8 @@ def pick_length_mode(user_message: str) -> str:
         return "short"
 
     # Распределение, имитирующее живую беседу: больше short/medium, long — редко.
-    return random.choices(
+    # Используем SystemRandom (CSPRNG) — не критично для безопасности, но снимает шум линтера S311.
+    return secrets.SystemRandom().choices(
         ["short", "medium", "long"],
         weights=[40, 45, 15],
         k=1,

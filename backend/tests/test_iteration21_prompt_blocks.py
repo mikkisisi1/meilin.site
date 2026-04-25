@@ -9,7 +9,6 @@ Tests:
 """
 import os
 import re
-import time
 import uuid
 import pytest
 import requests

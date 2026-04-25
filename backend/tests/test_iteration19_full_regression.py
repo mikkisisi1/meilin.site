@@ -14,9 +14,7 @@ Focus:
 - PWA public assets (manifest.json, sw.js, icons)
 """
 import os
-import re
 import uuid
-import string
 
 import pytest
 import requests

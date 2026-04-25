@@ -10,7 +10,6 @@ Iteration 17 tests:
 """
 import os
 import uuid
-import re
 import time
 import pytest
 import requests

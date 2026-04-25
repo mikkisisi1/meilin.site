@@ -6,7 +6,6 @@ TTS route: /tts — Fish Audio streaming synthesis with emotion control.
 Все настройки (эмоции, скорость, голоса) хранятся в voice_config.py
 ⚠️ НЕ ИЗМЕНЯТЬ БЕЗ СОГЛАСОВАНИЯ ⚠️
 """
-import os
 import re
 import logging
 from fastapi import APIRouter, HTTPException, Request
@@ -21,9 +20,7 @@ from voice_config import (
     FISH_API_KEY,
     FISH_BACKEND,
     FISH_LATENCY,
-    VOICE_IDS,
     PROSODY_CONFIG,
-    EMOTION_MARKERS,
     MAX_TTS_LENGTH,
     validate_voice_id,
     get_emotion_prefix,
