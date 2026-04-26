@@ -17,7 +17,7 @@ import useAudioStream from '@/hooks/useAudioStream';
 import useChat from '@/hooks/useChat';
 import useSpeechRecognition from '@/hooks/useSpeechRecognition';
 import useImageUpload from '@/hooks/useImageUpload';
-import apiClient, { API_BASE, getToken } from '@/lib/apiClient';
+import apiClient, { API_BASE } from '@/lib/apiClient';
 import { getIntakeQuestions, getIntakeIntro, getIntakeOutro, nextIntakeStep, buildIntakeSummary } from '@/config/intakeQuestions';
 
 const GREETINGS = {
@@ -84,14 +84,11 @@ export default function ChatPage() {
 
     const preloadGreeting = async (voice) => {
       try {
-        const token = getToken();
         const text = getGreeting(lang, voice) || GREETINGS[voice];
         const response = await fetch(`${API_BASE}/tts`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ text, voice }),
         });
         if (response.ok && !cancelled) {

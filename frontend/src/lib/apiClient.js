@@ -3,26 +3,16 @@ import axios from 'axios';
 const API_BASE = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /**
- * Centralized axios instance with auth interceptor.
- * Replaces scattered localStorage.getItem('access_token') calls.
- * Token is read from httpOnly cookies (withCredentials) + Bearer fallback.
+ * Centralized axios instance.
+ * Auth runs entirely via httpOnly Secure cookies set by the backend on
+ * /auth/login, /auth/register and /auth/guest. The browser sends them
+ * automatically because of `withCredentials: true`. JS code never reads
+ * the JWT — that closes the XSS-token-theft surface.
  */
 const apiClient = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
 });
-
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-/**
- * Centralized token getter — use this instead of direct localStorage access.
- */
-export const getToken = () => localStorage.getItem('access_token');
 
 export default apiClient;
 export { API_BASE };

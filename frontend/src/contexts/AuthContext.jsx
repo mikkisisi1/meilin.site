@@ -3,6 +3,15 @@ import apiClient from '@/lib/apiClient';
 
 const AuthContext = createContext(null);
 
+/**
+ * Auth lives entirely in httpOnly cookies set by the backend.
+ * No JWT is stored in localStorage anymore — XSS can no longer steal sessions.
+ *
+ * Bootstrap:
+ *   1. Try GET /auth/me — if cookie is valid we get the user back.
+ *   2. Otherwise mint a guest session via POST /auth/guest (sets cookie).
+ *   3. If even that fails, mark user=false (unauthenticated).
+ */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,11 +23,9 @@ export function AuthProvider({ children }) {
     } catch {
       try {
         const { data } = await apiClient.post('/auth/guest', {});
-        if (data.access_token) localStorage.setItem('access_token', data.access_token);
         setUser(data.user);
       } catch {
         setUser(false);
-        localStorage.removeItem('access_token');
       }
     } finally {
       setLoading(false);
@@ -29,14 +36,12 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const { data } = await apiClient.post('/auth/login', { email, password });
-    if (data.access_token) localStorage.setItem('access_token', data.access_token);
     setUser(data.user);
     return data;
   }, []);
 
   const register = useCallback(async (email, password, name) => {
     const { data } = await apiClient.post('/auth/register', { email, password, name });
-    if (data.access_token) localStorage.setItem('access_token', data.access_token);
     setUser(data.user);
     return data;
   }, []);
@@ -47,10 +52,8 @@ export function AuthProvider({ children }) {
     } catch (err) {
       if (process.env.NODE_ENV === 'development') console.error('Logout request failed:', err.message);
     }
-    localStorage.removeItem('access_token');
     try {
       const { data } = await apiClient.post('/auth/guest', {});
-      if (data.access_token) localStorage.setItem('access_token', data.access_token);
       setUser(data.user);
     } catch {
       setUser(false);

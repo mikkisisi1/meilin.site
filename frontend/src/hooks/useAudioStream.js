@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { API_BASE, getToken } from '@/lib/apiClient';
+import { API_BASE } from '@/lib/apiClient';
 
 /**
  * TTS playback hook with streaming via MediaSource Extensions where supported.
@@ -97,17 +97,14 @@ export default function useAudioStream(user, audioElementRef) {
 
     queueActiveRef.current = true;
     const msgIndex = queueMsgIndexRef.current;
-    const token = getToken();
     const controller = new AbortController();
     queueAbortRef.current = controller;
 
     try {
       const response = await fetch(`${API_BASE}/tts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ text: sentence, voice }),
         signal: controller.signal,
       });
@@ -211,7 +208,6 @@ export default function useAudioStream(user, audioElementRef) {
     cancelledRef.current = false;
     setPlayingTTS(msgIndex);
 
-    const token = getToken();
     const controller = new AbortController();
     abortRef.current = controller;
     const audio = audioElementRef.current;
@@ -249,10 +245,8 @@ export default function useAudioStream(user, audioElementRef) {
     try {
       const response = await fetch(`${API_BASE}/tts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ text, voice }),
         signal: controller.signal,
       });

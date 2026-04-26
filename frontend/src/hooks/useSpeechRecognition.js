@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { API_BASE, getToken } from '@/lib/apiClient';
+import { API_BASE } from '@/lib/apiClient';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 function getSpeechAPI() {
@@ -116,10 +116,9 @@ export const useSpeechRecognition = (language = 'ru') => {
           formData.append('audio', blob, 'recording.' + ext);
           formData.append('language', languageRef.current || 'ru');
 
-          const token = getToken();
           const res = await fetch(API_BASE + '/stt', {
             method: 'POST',
-            headers: token ? { Authorization: 'Bearer ' + token } : {},
+            credentials: 'include',
             body: formData,
           });
 

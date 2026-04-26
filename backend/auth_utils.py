@@ -67,12 +67,22 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+# In production (HTTPS) cookies must be Secure to prevent leakage over HTTP.
+# Locally (HTTP) we keep secure=False so devs can still log in via http://localhost.
+_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "true").lower() == "true"
+
+
 def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
     response.set_cookie(
         key="access_token", value=access_token,
-        httponly=True, secure=False, samesite="lax", max_age=86400, path="/"
+        httponly=True, secure=_COOKIE_SECURE, samesite="lax", max_age=86400, path="/"
     )
     response.set_cookie(
         key="refresh_token", value=refresh_token,
-        httponly=True, secure=False, samesite="lax", max_age=604800, path="/"
+        httponly=True, secure=_COOKIE_SECURE, samesite="lax", max_age=604800, path="/"
     )
+
+
+def clear_auth_cookies(response: Response):
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/")

@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 27 verified two production changes: (a) JWT migration from localStorage to httpOnly Secure cookies (auth/guest, login, register, logout, me) and (b) TTS strict-voice mode (Leon=male / Kylie=female only — no silent female fallback). Backend: 14/14 new pytest tests pass + 33/33 active regression tests pass (15 conditional skips, 0 failures) on test_session_notes.py / test_iteration19_full_regression.py / test_iteration20_unlimited_intake.py. Frontend: live preview smoke test confirms cookie-only auth works, no JWT in localStorage, no access_token in document.cookie (HttpOnly), no Authorization Bearer headers sent — chat + intake + 6x /api/tts all return 200 with cookie auth.\n\nKey backend findings (all PASS):\n- POST /api/auth/guest sets access_token + refresh_token cookies with HttpOnly flag; returns user object with role='guest'.\n- POST /api/auth/login (admin@miro.care / MiroCare2026!) → 200, cookies set, user.role='admin'.\n- POST /api/auth/register → 200, cookies set.\n- GET /api/auth/me with cookie-only (no Authorization header) → 200, user returned. Verified by stripping Authorization and using requests.Session cookie jar.\n- GET /api/auth/me with Bearer header (no cookie) → 200 — backward compat preserved.\n- POST /api/auth/logout clears both cookies; subsequent /auth/me → 401.\n- GET /api/auth/me with no cookie + no header → 401.\n- POST /api/tts voice='male' → 200 audio/mpeg.\n- POST /api/tts voice='female' → 200 audio/mpeg.\n- POST /api/tts voice='' → 400 (strict mode rejection).\n- POST /api/tts voice=null → 400.\n- POST /api/tts voice='unknown' → 400.\n- POST /api/tts WITHOUT voice key → 200 (Pydantic Optional default 'male').\n- POST /api/chat/stream with cookie-only auth → 200, SSE 'data:' frames received, stream completed.\n\nKey frontend findings (all PASS):\n- localStorage.getItem('access_token') === null after BEGIN flow. localStorage keys: ['miro_lang_v3','miro_pwa_install_dismissed','miro_theme','posthog_cookie','miro_language'] — NO token-like keys.\n- document.cookie contains only PostHog analytics cookie; access_token / refresh_token are HttpOnly therefore invisible to JS — confirmed.\n- In-browser fetch('/api/auth/me', {credentials:'include'}) → 200 with user payload; same fetch with credentials:'omit' → 401. This pair proves cookie is what's authenticating (not localStorage, not Bearer).\n- During Leon-flow + 'Alex' send: 15 /api/* responses captured: /auth/me 200x5, /tts 200x6, /chat/sessions 200x2, PUT /user/voice 200x1. Only 401 was the intentional credentials:'omit' test request.\n- Chat UI loads, EN greeting 'Hi, I'm Leon — here to support your journey...' renders, intake intro + Q2 'Are you looking to lose weight for yourself or to help a loved one?' card with 'For myself'/'For a loved one' buttons rendered.\n\nNote on Playwright request observation: page.on('request') reports cookie=False on /api/* requests because Chromium/Playwright omit the Cookie header from request.headers exposed via CDP for security. This is a well-known Playwright limitation, NOT a frontend bug. Cookie transmission was verified instead via in-browser fetch credentials:include vs omit pair returning 200 vs 401, and via end-to-end functional success (auth/me, chat, tts all 200).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "ChatPage mobile", "issues": ["(carry-over from iter26, cosmetic) PWA install banner still reappears at the bottom of chat after a few seconds even when miro_pwa_install_dismissed='1' is set in localStorage at session start. Visible in iter27 screenshots overlapping the chat input area. Pre-existing, not caused by this iteration's changes."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration27_cookie_auth_tts_strict.py",
+    "/app/test_reports/pytest/pytest_results_iter27.xml",
+    "/app/test_reports/pytest/pytest_results_iter27_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/app/backend/auth_utils.py:46-67 — get_current_user reads cookie first then Bearer header. Correct precedence for the migration. JWT type check ('access') prevents refresh tokens from being accepted on protected endpoints — good.",
+    "/app/backend/auth_utils.py:72 — _COOKIE_SECURE defaults to 'true' (read at import time). Backend .env does not set COOKIE_SECURE so production cookies are HttpOnly+Secure+SameSite=lax — correct for the deployed HTTPS preview. Note: because _COOKIE_SECURE is a module-level constant set at import, changing COOKIE_SECURE in .env requires a backend restart (not picked up by hot reload). Document this.",
+    "/app/backend/routes/auth.py:83,118,133 — login/register/guest still return 'access_token' in JSON body alongside Set-Cookie. Per agent_to_agent_context this is intentional for test backward compat. Long-term, after frontend has fully migrated, recommend dropping the JSON token to prevent the temptation of a developer re-introducing localStorage storage. Non-blocking.",
+    "/app/backend/routes/tts.py:112-116 — strict voice validation works exactly as specified. voice=None→'' after .strip().lower(), voice='unknown' rejected, voice='male'/'female' accepted, missing voice key uses Pydantic default 'male'. validate_voice_id no longer falls back silently — verified via voice_config.py raising ValueError path is now unreachable from this endpoint because the 'in (male,female)' guard runs first. Defense-in-depth is good.",
+    "/app/frontend/src/lib/apiClient.js — withCredentials:true confirmed on axios instance. No localStorage reads observed for tokens. No Bearer interceptor.",
+    "/app/frontend/src/contexts/AuthContext.jsx — confirmed no localStorage 'access_token' reads/writes during BEGIN flow. localStorage keys after flow: only language/theme/PWA-dismissal/PostHog.",
+    "(carry-over) PWA install banner suppression logic in ChatPage / hooks does not respect miro_pwa_install_dismissed='1' set just before reload — the banner still shows. Cosmetic but can overlap chat input on small viewports."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration27_cookie_auth_tts_strict.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 new tests + 33/33 active regression tests, 15 conditional skips)",
+    "frontend": "100% (all targeted assertions: no JWT in localStorage, no access_token visible in document.cookie, /api/auth/me 200 via cookie / 401 without cookie, no Bearer headers sent, chat + intake + tts functional)"
+  },
+  "test_credentials": {
+    "admin": "admin@miro.care / MiroCare2026! — verified working (login returns 200 + cookies + user.role='admin')",
+    "guest": "auto-created via POST /api/auth/guest"
+  },
+  "seed_data_creation": "test_register_sets_cookies creates a TEST_<uuid>@miro.care user per run; not cleaned up (no delete-user endpoint). Cumulative impact is small.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iter27 fully verified the JWT-to-cookie migration and TTS strict-voice mode. Reusable test file: /app/backend/tests/test_iteration27_cookie_auth_tts_strict.py. Important note for future frontend tests: Playwright's page.on('request') will always report cookie=False on /api/* requests due to Chromium CDP behavior — DO NOT use that as a regression signal. Instead verify cookie transmission via in-browser page.evaluate fetch with credentials:'include' vs credentials:'omit' returning 200 vs 401 (pattern proven in this run). For localStorage regression checks, assert that none of Object.keys(localStorage) contain 'token' or 'jwt' substrings. The PWA install banner cosmetic issue is pre-existing from iter22+ and unrelated to this iteration.",
+  "rca_of_issue": "N/A — feature/migration verification, not a bug fix."
+}

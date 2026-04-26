@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import apiClient, { API_BASE, getToken } from '@/lib/apiClient';
+import apiClient, { API_BASE } from '@/lib/apiClient';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Sentence boundary detector — matches `.`, `!`, `?`, `…` and dialog dash separators,
@@ -147,13 +147,10 @@ export default function useChat(user, lang, refreshUser, onAIMessage, activeVoic
     };
 
     try {
-      const token = getToken();
       const response = await fetch(`${API_BASE}/chat/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           message: text,
           session_id: sessionId,
@@ -232,13 +229,11 @@ export default function useChat(user, lang, refreshUser, onAIMessage, activeVoic
       });
       try { await refreshUserRef.current?.(); } catch { /* noop */ }
     } catch (err) {
-      // 401 retry: register guest and redo via streaming
+      // 401 retry: register guest and redo via streaming.
+      // Cookie is set by /auth/guest server-side — nothing to persist client-side.
       if (err?.status === 401) {
         try {
-          const guestResp = await apiClient.post('/auth/guest', {});
-          if (guestResp.data.access_token) {
-            localStorage.setItem('access_token', guestResp.data.access_token);
-          }
+          await apiClient.post('/auth/guest', {});
           await refreshUserRef.current?.();
           setMessages(prev => prev.filter(m => m.id !== aiMsgId));
           setLoading(false);
