@@ -263,7 +263,7 @@ export function buildIntakeSummary(name, answers, lang) {
   }
   const lines = [
     `[${v.summary_label}]`,
-    `${v.field_age.split(' ')[0]}: ${name}`, // simple "name" label fallback
+    `Name: ${name}`,
     `Q2: ${q('q2')}`,
     `Q3: ${q('q3')}`,
     `${v.field_age}: ${answers.q4_age || '—'}, ${v.field_weight}: ${answers.q4_weight || '—'}, ${v.field_height}: ${answers.q4_height || '—'}${bmi ? ` (BMI ${bmi})` : ''}`,

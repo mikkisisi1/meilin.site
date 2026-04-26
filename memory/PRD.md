@@ -29,6 +29,10 @@ Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-P
 - Confidentiality contract: диалог зашифрован at-rest; доступ только у пользователя через его личный кабинет
 
 ## Changelog
+- 2026-04-26: **Intake localization (8 langs)** — `intakeQuestions.js` rewritten as `INTAKE_BY_LANG` with full translations for ru/en/zh/es/ar/fr/de/hi (intro/outro/options); `IntakeCard` buttons + placeholders read from `getIntakeButtons(lang)`; TTS voices intake intro + each question in user's selected language.
+- 2026-04-26: **Streaming chat + sentence-by-sentence TTS** — new `/api/chat/stream` SSE endpoint streams Claude tokens; frontend `useChat` accumulates deltas and dispatches per-sentence TTS via `useAudioStream` queue (sentences ≥ 8 chars triggered on `.!?…` boundaries).
+- 2026-04-26: **Independent chat histories per agent** — Leon and Kylie maintain separate `session_id` and messages arrays (`sessionsByVoiceRef` / `messagesByVoiceRef` in `useChat`). `switchVoice(newVoice, prevVoice)` snapshot-saves before activeVoice swaps.
+- 2026-04-26: **Tone unification** — both agents speak in calm/professional/attentive/warm tone. `voice_config.EMOTION_MARKERS.base` → `[calm][professional][attentive][warm]`; `SYSTEM_PROMPT` style block adds «спокойный, профессиональный, внимательный, тёплый».
 - 2026-04-18: Replaced female voice ID → `7a98513e3a7d439682fa68f8d4da34c0` (kept name "Оксана")
 - 2026-04-18: Rolled back unauthorized deployment fixes (metrics, lazy loading) at user's request
 - 2026-04-18: Added `/health` and `/api/health` for K8s readiness, moved DB init to background task, lazy SDK imports (33s → 0.45s cold start)
