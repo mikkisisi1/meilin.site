@@ -156,7 +156,7 @@ export default function useAudioStream(user, audioElementRef) {
         playNextInQueue();
       }
     }
-  }, [user?.selected_voice, audioElementRef, clearAudioHandlers, revokeCurrentUrl]);
+  }, [audioElementRef, clearAudioHandlers, revokeCurrentUrl]);
 
   const resetTTSQueue = useCallback((msgIndex, voice) => {
     if (!ttsEnabled) return;
