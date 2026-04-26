@@ -1,0 +1,50 @@
+{
+  "summary": "Iteration 28 verifies the chat refactor is behavior-identical. Backend split routes/chat.py (487 lines) + new routes/chat_helpers.py (538 lines), and frontend split ChatPage.jsx (356 lines) + 3 hooks + 1 ChatInputBar component. Backend: 27/27 pytest tests pass — covers helper exports (chat_histories, init_session, call_openrouter, stream_openrouter, handle_search_tag, trim_messages, strip_emotion_markers, SEARCH_TAG_RE, pick_length_mode, build_length_directive, LENGTH_TOKEN_LIMITS, check_user_access, persist_chat_turn, extract_homework, extract_user_name, truncate_to_sentence, build_counter_updates), POST /api/chat (sync 200 with {message,type,needs_tariff}), POST /api/chat/stream (SSE 200 with delta+done events), GET /api/chat/sessions, GET/DELETE /api/chat/notes, GET /api/chat/history/{id}, DELETE /api/chat/messages, POST /api/specialist/request, plus existing test_strip_emotion_markers.py with the new chat_helpers import path. Frontend: Auth page renders 'SlimLight' title with NO Miro/Miron/Shakira/mirocare references, About page same. Guest auth → /chat → click Leon avatar → first message 'Alex' → intake intro 'Nice to meet you, Alex! …' AND first intake question Q2 'Are you looking to lose weight for yourself or to help a loved one?' both rendered. ChatInputBar shows all 5 data-testids (chat-input, mic-btn, send-btn, camera-inline-btn, chat-input-form). Quick replies correctly hidden before intake completion. Mic-btn enabled, click does not crash (isListening doesn't toggle in headless Chromium because Web Speech API recognition.start() never fires onstart — environmental, not a regression). Zero JS console errors during full auth→chat→send flow.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "ChatHeader voice avatars", "issues": ["voice avatar buttons (Leon / Kylie images) lack data-testid attributes — selectors had to fall back to text matching. Cosmetic / testability improvement; not a regression. Recommend adding data-testid='voice-avatar-male' and 'voice-avatar-female'."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration28_refactor.py",
+    "/app/backend/tests/test_strip_emotion_markers.py",
+    "/app/test_reports/pytest/pytest_results_iter28.xml"
+  ],
+  "action_items": [
+    "(Nice-to-have) Add data-testid='voice-avatar-male' / 'voice-avatar-female' to the Leon/Kylie avatar buttons in ChatHeader for cleaner test selectors.",
+    "(Nice-to-have, carry-over from iter27) PWA install banner can still overlap chat input on small viewports despite miro_pwa_install_dismissed flag — pre-existing."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/routes/chat.py (487 lines) — clean split. Imports now read 'from routes.chat_helpers import (...)'. No business logic remains in chat.py beyond endpoint orchestration. _resolve_user soft-auth correctly returns _ANON_USER shell on any auth exception so /chat works for unauthenticated requests as before.",
+    "/app/backend/routes/chat_helpers.py (538 lines) — single-direction dependency (chat.py → chat_helpers.py, never the reverse) is preserved. OpenRouter client lazy-init via get_openrouter_client() avoids import-time failure if OPENROUTER_API_KEY missing. _wrap_anthropic_cache adds prompt-caching only for anthropic/* models — preserved. truncate_to_sentence guards against empty/short text — good.",
+    "/app/backend/routes/chat.py:174 — 503 mapping for OpenRouter 401/Unauthorized → 'AI provider key not configured' is informative; preserved from previous iteration.",
+    "/app/backend/routes/chat.py:375 — local 'from routes.chat_helpers import build_counter_updates' inside chat_image_endpoint is a fine deferred import but the symbol could be added to the top-level import block for consistency (cosmetic).",
+    "/app/frontend/src/pages/ChatPage.jsx (356 lines) — well decomposed. useGreetingPreload, useIntakeFlow, useSpeechCapture each hold a single concern. ttsBridge memoised correctly to avoid useChat re-mounts. Voice-switch logic preserves restored history vs greeting reset semantics.",
+    "/app/frontend/src/components/chat/ChatInputBar.jsx (101 lines) — pure presentational, all required data-testid attributes present (chat-input-form, chat-input, send-btn, mic-btn, camera-inline-btn). Disable states (loading, !input.trim(), !isSupported) correct.",
+    "/app/frontend/src/hooks/useSpeechCapture.js — barge-in via stopTTS + silence-detection wrapper around useSpeechRecognition is preserved; in headless Chromium isListening cannot toggle because Web Speech API never fires onstart — this is environmental, not a refactor bug.",
+    "Branding: 'SlimLight' is the new user-visible brand on /auth and /about; no Miron/Shakira/Miro.Care/mirocare references found. DB_NAME='miro_care' is intentionally kept internal per problem statement.",
+    "All 27 backend tests pass in 7s — zero flakes, /chat sync and /chat/stream both succeed against live OpenRouter (Claude Sonnet 4.5)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration28_refactor.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (27/27 — 9 helper-import + unit tests, 7 endpoint tests with cookie auth, 1 SSE stream test, 10 strip_emotion_markers regression cases)",
+    "frontend": "100% on testable surface (auth page renders SlimLight, /about clean of legacy refs, /chat renders, voice avatars clickable, all 5 ChatInputBar data-testids present, quick-replies correctly hidden pre-intake, intake flow triggers on first-message-as-name, 0 console errors). Mic toggle visual verification limited by headless browser — not a regression."
+  },
+  "test_credentials": {
+    "admin": "admin@slimlight.app / SlimLight2026! (legacy admin@miro.care / MiroCare2026! still in DB per memory note)",
+    "guest": "POST /api/auth/guest — verified working, returns 200 + httpOnly cookies"
+  },
+  "seed_data_creation": "test_specialist_request creates a specialist_requests doc with name='TEST_user' on every run. Cumulative impact small.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iter28 verified the chat-module refactor is behavior-identical. Reusable test file: /app/backend/tests/test_iteration28_refactor.py covers (a) all helpers exported from routes/chat_helpers.py, (b) chat.py contains only HTTP endpoints (no helper definitions remain), (c) all 7 chat HTTP endpoints + /specialist/request return correct status + structure, (d) /chat/stream produces valid SSE delta+done events. Frontend smoke confirmed all ChatInputBar data-testids and the intake-after-name flow trigger. Voice avatar buttons in ChatHeader lack data-testids — known testability gap, recommend addition. PWA install banner cosmetic overlap is pre-existing from iter22+. Headless browsers cannot exercise the Web Speech API onstart path so isListening UI toggle cannot be verified visually — verify in a real browser or via unit test of useSpeechCapture if needed.",
+  "rca_of_issue": "N/A — refactor regression check, not a bug fix. No regressions found."
+}

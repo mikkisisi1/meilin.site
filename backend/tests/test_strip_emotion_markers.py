@@ -13,7 +13,7 @@ os.environ.setdefault("DB_NAME", "test_db")
 
 import pytest
 
-from routes.chat import strip_emotion_markers
+from routes.chat_helpers import strip_emotion_markers
 
 
 @pytest.mark.parametrize(
