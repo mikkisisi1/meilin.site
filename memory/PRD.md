@@ -97,6 +97,10 @@ Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-P
 
 ## Testing Status
 - Iteration 17 (backend+frontend): **100% pass** — 12/12 scenarios including 8 languages, gender switching, encryption, TTS, UI flows
+- 2026-04-26: **Refactor — chat module split** (behavior-identical, no functional changes):
+  • Backend `routes/chat.py` 929 → 487 lines. Helpers extracted to new `routes/chat_helpers.py` (538 lines): `chat_histories`, `session_photo_count`, `init_session`, `touch_session`, `call_openrouter`, `stream_openrouter`, `handle_search_tag`, `trim_messages`, `truncate_to_sentence`, `_wrap_anthropic_cache`, `strip_emotion_markers`, `EMOTION_MARKER_RE`, `SEARCH_TAG_RE`, `SEARCH_INSTRUCTION`, `find_problem_context`, `extract_user_name`, `ddg_search`, `pick_length_mode`, `build_length_directive`, `LENGTH_PROFILES`, `LENGTH_TOKEN_LIMITS`, `load_personal_context`, `save_name_if_found`, `update_session_notes`, `extract_homework`, `save_homework`, `check_user_access`, `build_counter_updates`, `persist_chat_turn`. New `_resolve_user`, `_prepare_messages`, `_photo_directive` helpers in chat.py keep endpoints DRY. Test import path migrated `from routes.chat import strip_emotion_markers` → `from routes.chat_helpers import strip_emotion_markers`. Iteration_28 regression: 27/27 pytest pass.
+  • Frontend `ChatPage.jsx` 561 → 356 lines (-37%). New hooks: `useGreetingPreload` (62 lines, MP3 cache for both voices), `useIntakeFlow` (120 lines, intake state + startIntake + handleIntakeAnswer), `useSpeechCapture` (105 lines, wraps useSpeechRecognition + 3s silence detection + barge-in stopTTS). New component: `ChatInputBar` (101 lines, presentational text/wave/running-text + camera/send/mic). All `data-testid`s preserved. Frontend smoke 100%, 0 console errors.
+
 - Iteration 18 (i18n regression): **PASS** — /booking, /payment-success, RTL verified for ru/en/zh/ar; chat flow blocked by OpenRouter 402 (unrelated to code)
 - Console warnings: **0** after useAudioStream rewrite
 
