@@ -1093,6 +1093,10 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   z-index: 5;
 }
 .xc-quick-replies::-webkit-scrollbar { display: none; }
+@keyframes quickReplyFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .xc-quick-reply-chip {
   flex: 0 0 auto;
   padding: 8px 14px;
@@ -1106,8 +1110,15 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   font-family: var(--font-body);
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  opacity: 0;
+  animation: quickReplyFade 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+.xc-quick-replies .xc-quick-reply-chip:nth-child(1) { animation-delay: 0.05s; }
+.xc-quick-replies .xc-quick-reply-chip:nth-child(2) { animation-delay: 0.13s; }
+.xc-quick-replies .xc-quick-reply-chip:nth-child(3) { animation-delay: 0.21s; }
+.xc-quick-replies .xc-quick-reply-chip:nth-child(4) { animation-delay: 0.29s; }
+.xc-quick-replies .xc-quick-reply-chip:nth-child(5) { animation-delay: 0.37s; }
 .xc-quick-reply-chip:hover:not(:disabled) {
   border-color: var(--accent);
   background: rgba(60, 140, 255, 0.12);
