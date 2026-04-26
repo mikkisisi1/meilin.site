@@ -20,6 +20,7 @@ from routes.tts import router as tts_router
 from routes.payments import router as payments_router
 from routes.bookings import router as bookings_router
 from routes.stt import router as stt_router
+from routes.magic import router as magic_router
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ api_router.include_router(tts_router)
 api_router.include_router(payments_router)
 api_router.include_router(bookings_router)
 api_router.include_router(stt_router)
+api_router.include_router(magic_router)
 
 
 # ---------- STARTUP / SHUTDOWN ----------
@@ -57,6 +59,10 @@ async def _bg_init():
     """Non-blocking background init so K8s health probes pass immediately."""
     try:
         await db.users.create_index("email", unique=True)
+        # Magic-link tokens — TTL on `expires_at` autodeletes expired records,
+        # unique on `token` so collisions can't reuse another user's session.
+        await db.magic_tokens.create_index("expires_at", expireAfterSeconds=0)
+        await db.magic_tokens.create_index("token", unique=True)
         await seed_admin()
         logger.info("Miro.Care backend init complete")
     except Exception as e:

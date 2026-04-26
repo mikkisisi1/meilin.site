@@ -14,6 +14,7 @@ import AboutPage from '@/pages/AboutPage';
 import ProfilePage from '@/pages/ProfilePage';
 import MiroRadio from '@/pages/MiroRadio';
 import BookingCalendar from '@/pages/BookingCalendar';
+import MagicVerify from '@/pages/MagicVerify';
 import InstallPrompt from '@/components/InstallPrompt';
 import '@/App.css';
 
@@ -37,6 +38,7 @@ function AppRoutes() {
       <Route path="/profile" element={<WaitForAuth><ProfilePage /></WaitForAuth>} />
       <Route path="/radio" element={<WaitForAuth><MiroRadio /></WaitForAuth>} />
       <Route path="/booking" element={<WaitForAuth><BookingCalendar /></WaitForAuth>} />
+      <Route path="/magic/:token" element={<MagicVerify />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
