@@ -34,7 +34,7 @@ export default function MessageList({ messages, loading, playingTTS, playTTS, st
             {msg.role === 'ai' && !msg.isTariffPrompt && !msg.intakeQuestion && (
               <button
                 data-testid={`tts-play-${i}`}
-                onClick={() => playingTTS === i ? stopTTS() : playTTS(msg.content, i)}
+                onClick={() => playingTTS === i ? stopTTS() : playTTS(msg.content, i, activeVoice)}
                 className={`xc-msg-speaker-btn ${playingTTS === i ? 'playing' : ''}`}
               >
                 {playingTTS === i ? <VolumeX size={14} strokeWidth={1.5} /> : <Volume2 size={14} strokeWidth={1.5} />}

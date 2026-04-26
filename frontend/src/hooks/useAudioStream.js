@@ -76,15 +76,27 @@ export default function useAudioStream(user, audioElementRef) {
   }, [stopTTS]);
 
   // ---- Streaming sentence queue: fetch one sentence as MP3, play, then drain ----
+  // queueRef stores tuples: { sentence, voice } — voice is captured per-sentence
+  // to guarantee Leon/Kylie voices NEVER cross even if state changes mid-stream.
   const playNextInQueue = useCallback(async () => {
     if (cancelledRef.current) return;
     if (queueActiveRef.current) return;
-    const sentence = queueRef.current.shift();
-    if (!sentence) return;
+    const item = queueRef.current.shift();
+    if (!item) return;
+    const { sentence, voice } = item;
+    if (!voice || (voice !== 'male' && voice !== 'female')) {
+      // Strict: refuse to play a sentence without an explicit valid voice —
+      // better to drop it than to play it in the wrong agent's voice.
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('Sentence dropped: invalid/missing voice', voice);
+      }
+      if (queueRef.current.length > 0) playNextInQueue();
+      return;
+    }
 
     queueActiveRef.current = true;
     const msgIndex = queueMsgIndexRef.current;
-    const voice = queueVoiceRef.current || user?.selected_voice || 'female';
     const token = getToken();
     const controller = new AbortController();
     queueAbortRef.current = controller;
@@ -156,18 +168,45 @@ export default function useAudioStream(user, audioElementRef) {
     queueRef.current = [];
     queueActiveRef.current = false;
     queueMsgIndexRef.current = msgIndex;
-    queueVoiceRef.current = voice || user?.selected_voice || 'female';
-  }, [ttsEnabled, stopTTS, user?.selected_voice]);
+    // Strict: only accept a real "male"/"female" — otherwise null so playNextInQueue
+    // refuses to send (rather than risking the wrong agent's voice).
+    queueVoiceRef.current = (voice === 'male' || voice === 'female') ? voice : null;
+  }, [ttsEnabled, stopTTS]);
 
-  const enqueueSentence = useCallback((sentence) => {
+  const enqueueSentence = useCallback((sentence, voiceOverride) => {
     if (!ttsEnabled || !sentence || !sentence.trim()) return;
-    queueRef.current.push(sentence.trim());
+    // Per-sentence voice tagging — no shared mutable ref means voices can never
+    // cross between Leon and Kylie even under rapid switches.
+    const voice = (voiceOverride === 'male' || voiceOverride === 'female')
+      ? voiceOverride
+      : queueVoiceRef.current;
+    if (voice !== 'male' && voice !== 'female') {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('enqueueSentence dropped: no valid voice tag', voiceOverride);
+      }
+      return;
+    }
+    queueRef.current.push({ sentence: sentence.trim(), voice });
     if (!queueActiveRef.current) playNextInQueue();
   }, [ttsEnabled, playNextInQueue]);
 
   // ---- Existing single-shot playTTS (greeting, manual replay) ----
   const playTTS = useCallback(async (text, msgIndex, voiceOverride) => {
     if (!ttsEnabled || !audioElementRef?.current) return;
+    // Strict voice: never default to a different agent silently.
+    const voice = (voiceOverride === 'male' || voiceOverride === 'female')
+      ? voiceOverride
+      : (user?.selected_voice === 'male' || user?.selected_voice === 'female')
+        ? user.selected_voice
+        : null;
+    if (!voice) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('playTTS dropped: no valid voice', voiceOverride, user?.selected_voice);
+      }
+      return;
+    }
     stopTTS();
     cancelledRef.current = false;
     setPlayingTTS(msgIndex);
@@ -214,7 +253,7 @@ export default function useAudioStream(user, audioElementRef) {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ text, voice: voiceOverride || user?.selected_voice || 'female' }),
+        body: JSON.stringify({ text, voice }),
         signal: controller.signal,
       });
 

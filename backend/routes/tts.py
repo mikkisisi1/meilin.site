@@ -106,12 +106,16 @@ async def text_to_speech(req: TTSRequestModel, request: Request):
     # 🔒 Добавление эмоциональных маркеров
     text = add_emotion_markers(text)
 
-    # 🔒 Валидация voice ID
-    voice_id = validate_voice_id(req.voice or "female")
+    # 🔒 Валидация voice ID — STRICT. Голоса не должны пересекаться.
+    # Если frontend прислал пустую/неизвестную строку — это баг, отвечаем 400,
+    # а не подменяем агента (Leon ↔ Kylie никогда не должны меняться местами).
+    voice_param = (req.voice or "").strip().lower()
+    if voice_param not in ("male", "female"):
+        logger.warning(f"TTS Request REJECTED with voice='{req.voice}' — strict mode (Leon/Kylie must not cross).")
+        raise HTTPException(400, f"Invalid voice='{req.voice}'. Must be 'male' or 'female'.")
+    voice_id = validate_voice_id(voice_param)
 
-    logger.info(f"TTS Request | Voice: {req.voice} | VoiceID: {voice_id[:8]}… | Text length: {len(text)} | Backend: {FISH_BACKEND} | Latency: {FISH_LATENCY} | Speed: {PROSODY_CONFIG['speed']}")
-    if req.voice not in ("male", "female"):
-        logger.warning(f"TTS Request with UNKNOWN voice='{req.voice}' — fell back to Kylie (female). Frontend bug?")
+    logger.info(f"TTS Request | Voice: {voice_param} | VoiceID: {voice_id[:8]}… | Text length: {len(text)} | Backend: {FISH_BACKEND} | Latency: {FISH_LATENCY} | Speed: {PROSODY_CONFIG['speed']}")
 
     def generate_audio():
         """

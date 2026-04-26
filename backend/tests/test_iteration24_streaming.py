@@ -8,7 +8,7 @@ import time
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://slim-you-1.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://ai-psych-slim.preview.emergentagent.com").rstrip("/")
 
 
 def _parse_sse(raw_text: str):

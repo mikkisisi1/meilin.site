@@ -84,15 +84,19 @@ def get_emotion_prefix(context: str = "base") -> str:
 def validate_voice_id(voice: str) -> str:
     """
     Валидация и получение Voice ID.
-    
+
     Args:
         voice: "male" или "female"
-    
+
     Returns:
         Voice ID для Fish Audio API
-    
+
     🔒 НЕ ИЗМЕНЯТЬ ЭТУ ФУНКЦИЮ
+
+    ⚠️ STRICT: голоса агентов НЕ должны пересекаться. Если voice неизвестен —
+    бросаем исключение, чтобы Leon никогда случайно не заговорил голосом Kylie
+    (и наоборот). Любой silent fallback ломает иллюзию разных персонажей.
     """
     if voice not in VOICE_IDS:
-        return VOICE_IDS["female"]  # Kylie по умолчанию
+        raise ValueError(f"Invalid voice='{voice}'. Expected one of: {list(VOICE_IDS.keys())}")
     return VOICE_IDS[voice]

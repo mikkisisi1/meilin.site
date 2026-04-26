@@ -142,7 +142,7 @@ export default function useChat(user, lang, refreshUser, onAIMessage, activeVoic
       const [complete, rest] = extractCompleteSentences(pendingTail);
       pendingTail = rest;
       if (complete.length && bridge?.enqueueSentence) {
-        for (const s of complete) bridge.enqueueSentence(s);
+        for (const s of complete) bridge.enqueueSentence(s, voice);
       }
     };
 
@@ -200,14 +200,14 @@ export default function useChat(user, lang, refreshUser, onAIMessage, activeVoic
             if (bridge?.resetTTSQueue) bridge.resetTTSQueue(aiMsgIndexAtAppend, voice);
             const [allSentences, remainder] = extractCompleteSentences(buffer + ' ');
             if (bridge?.enqueueSentence) {
-              for (const s of allSentences) bridge.enqueueSentence(s);
+              for (const s of allSentences) bridge.enqueueSentence(s, voice);
               const tail = remainder.trim();
-              if (tail) bridge.enqueueSentence(tail);
+              if (tail) bridge.enqueueSentence(tail, voice);
             }
           } else if (payload.type === 'done') {
             // Flush any leftover tail as final sentence.
             const tail = pendingTail.trim();
-            if (tail && bridge?.enqueueSentence) bridge.enqueueSentence(tail);
+            if (tail && bridge?.enqueueSentence) bridge.enqueueSentence(tail, voice);
             pendingTail = '';
             if (typeof payload.full_text === 'string') {
               buffer = payload.full_text;
