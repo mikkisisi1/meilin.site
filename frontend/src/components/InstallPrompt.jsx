@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import '@/components/InstallPrompt.css';
 
 const DISMISS_KEY = 'miro_install_dismissed_until';
-const SHOW_DELAY_MS = 12000; // 12 seconds after landing load
+const TRIGGER_EVENT = 'miro:show-install-prompt';
 const DISMISS_DAYS = 7;
 
 function isStandalone() {
@@ -55,11 +55,14 @@ export default function InstallPrompt() {
     };
   }, []);
 
-  // Delayed reveal
+  // Contextual reveal — wait for an explicit "earned" trigger (e.g. intake
+  // completion). This is far less annoying than a timer-based popup on landing
+  // and converts better because the user has already invested in the product.
   useEffect(() => {
     if (isStandalone() || isDismissed()) return;
-    const id = setTimeout(() => setVisible(true), SHOW_DELAY_MS);
-    return () => clearTimeout(id);
+    const onTrigger = () => setVisible(true);
+    window.addEventListener(TRIGGER_EVENT, onTrigger);
+    return () => window.removeEventListener(TRIGGER_EVENT, onTrigger);
   }, []);
 
   const handleInstall = useCallback(async () => {

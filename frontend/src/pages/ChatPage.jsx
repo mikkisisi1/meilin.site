@@ -387,6 +387,20 @@ export default function ChatPage() {
     }
   }, [intakeStep, isGuest, authPromptShown]);
 
+  // After intake is complete — invite the user to install the PWA.
+  // Fires once per session, gated 7d via DISMISS_KEY in InstallPrompt itself.
+  // Delay is intentionally longer than the AuthPromptModal (1.5s) so the two
+  // don't stack: by the time this fires, guests have already engaged with auth.
+  const installPromptTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (intakeStep !== -2 || installPromptTriggeredRef.current) return;
+    installPromptTriggeredRef.current = true;
+    const id = setTimeout(() => {
+      window.dispatchEvent(new Event('miro:show-install-prompt'));
+    }, 6000);
+    return () => clearTimeout(id);
+  }, [intakeStep]);
+
   // B1: Quick replies visible only after intake completes (so they don't conflict with name/intake prompts).
   const isIntakePending = messages.some((m) => m.intakeQuestion && !m.intakeAnswered);
   const showQuickReplies = (
