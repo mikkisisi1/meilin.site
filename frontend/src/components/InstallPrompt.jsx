@@ -113,7 +113,7 @@ export default function InstallPrompt() {
 
         <img
           src="/icon-192.png"
-          alt="Miro.Care"
+          alt="SlimLight"
           className="miro-install-icon"
           data-testid="install-icon"
         />

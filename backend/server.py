@@ -25,7 +25,7 @@ from routes.magic import router as magic_router
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Miro.Care API")
+app = FastAPI(title="SlimLight API")
 
 
 # ---------- HEALTH CHECK (K8s readiness/liveness probes) ----------
@@ -64,7 +64,7 @@ async def _bg_init():
         await db.magic_tokens.create_index("expires_at", expireAfterSeconds=0)
         await db.magic_tokens.create_index("token", unique=True)
         await seed_admin()
-        logger.info("Miro.Care backend init complete")
+        logger.info("SlimLight backend init complete")
     except Exception as e:
         logger.error(f"Background init failed (will retry on demand): {e}")
 
@@ -73,12 +73,12 @@ async def _bg_init():
 async def startup():
     # Kick off DB init in the background so uvicorn marks the app ready immediately.
     asyncio.create_task(_bg_init())
-    logger.info("Miro.Care backend started (bg init dispatched)")
+    logger.info("SlimLight backend started (bg init dispatched)")
 
 
 async def seed_admin():
-    admin_email = os.environ.get("ADMIN_EMAIL", "admin@miro.care")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "MiroCare2026!")
+    admin_email = os.environ.get("ADMIN_EMAIL", "admin@slimlight.app")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "SlimLight2026!")
     existing = await db.users.find_one({"email": admin_email})
     if not existing:
         await db.users.insert_one({

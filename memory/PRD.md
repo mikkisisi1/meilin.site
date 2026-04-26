@@ -1,4 +1,4 @@
-# Miro.Care — Product Requirements Document
+# SlimLight — Product Requirements Document
 
 ## Original Problem Statement
 Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-Pro streaming TTS, emotional markers, multi-language and responsive support. Voice selection (male "Мирон" / female "Оксана") with locked prosody and emotional control.
@@ -60,7 +60,7 @@ Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-P
   - B4: New `HeaderMenu` (⋯ popup) with `Clear chat`. New backend endpoint `DELETE /api/chat/messages` — wipes chat_messages + in-memory session histories ONLY; keeps users/profile/intake intact.
   - B5: New `AuthPromptModal` — auto-shown 1.5s after intake completes, **only for guests**, only **once** per session. 4 buttons: Continue with Google (→ /auth), Apple (Coming soon toast), WhatsApp (Coming soon toast), Continue as Guest (close modal).
 - 2026-04-19: **i18n pass #2** — fixed hardcoded Russian strings: ChatPage alert & greeting pre-cache (now uses current `lang`), useChat error message, useSpeechRecognition alerts (3 places), PaymentSuccess fallback strings, BookingCalendar (legend/tz/price unit/month/weekday names). Added translation keys: `errorTryAgain`, `bookingFailed`, `advance` across 8 languages. `ChatInputArea` now accepts `unsupportedTitle` prop. Iter-18 verified OK; zh missing keys patched by tester.
-- 2026-04-19: **PWA install flow** — added `manifest.json` (Miro.Care icons 192/512 + maskable), minimal service worker (`sw.js`) with shell cache + network-first for /api/. Replaced v2 SW-unregister script with v3 that keeps SW alive. Added `InstallPrompt` component: appears 12s after landing load (unless `display-mode: standalone` or dismissed), uses `beforeinstallprompt` + `appinstalled` native API, has install spinner + progress bar + success checkmark, 7-day dismiss cooldown. Localized in 8 languages (`installTitle`, `installSubtitle`, `installCta`, `installing`, `installed`, `installRetry`, `close`). RTL-aware close button.
+- 2026-04-19: **PWA install flow** — added `manifest.json` (SlimLight icons 192/512 + maskable), minimal service worker (`sw.js`) with shell cache + network-first for /api/. Replaced v2 SW-unregister script with v3 that keeps SW alive. Added `InstallPrompt` component: appears 12s after landing load (unless `display-mode: standalone` or dismissed), uses `beforeinstallprompt` + `appinstalled` native API, has install spinner + progress bar + success checkmark, 7-day dismiss cooldown. Localized in 8 languages (`installTitle`, `installSubtitle`, `installCta`, `installing`, `installed`, `installRetry`, `close`). RTL-aware close button.
 - 2026-02-xx (iter21): **SYSTEM_PROMPT extended** — добавлены 4 новых блока между определением Mode 2 и «ЛОГИКА ВЕДЕНИЯ ДИАЛОГА» в `/app/backend/config.py`:
   1. **ОБРАБОТКА ДАННЫХ АНКЕТЫ** — молчаливое построение профиля клиента (ИМТ по формуле, цель 0.5–1 кг/нед, главный паттерн, триггер из В10, время из В9, риск из В13, мотивация из В14).
   2. **АКТИВНОЕ ИСПОЛЬЗОВАНИЕ ПРОФИЛЯ** — поведение триггеров (Стресс / Усталость / Скука), времени (Вечер / Ночь), истории неудачных попыток, ИМТ 35+, уровней мотивации 1-3 и 9-10, ограничений здоровья.
@@ -87,6 +87,13 @@ Hybrid AI-psychologist platform (React + FastAPI + MongoDB) with Fish Audio S2-P
   • Voice IDs (Fish Audio Мирон/Оксана hash) НЕ тронуты — locked rule соблюдён.
   • Голосовая запись/MP3 lookup идёт по ключам `male/female` — переименование имён их не затрагивает.
   • Lint: backend ruff ✅, frontend ESLint ✅. Smoke: chat preview показывает аватары `LEON / KYLIE`, lang=`en`.
+- 2026-04-26: **Rebrand → SlimLight + Miron Shakira removal**:
+  • Brand renamed `Miro.Care` → `SlimLight` everywhere user-visible: `index.html` title/meta, `manifest.json` (short_name/name/desc), `sw.js` header, `AuthPage` title, `LanguageContext` (welcome / missionTitle / missionText for ru/en/zh/es/ar/fr/de/hi), `MiroRadio` heading "Miro Radio" → "SlimLight Radio", `InstallPrompt` alt, `App.css` theme comment, backend `server.py` (FastAPI title, log lines, default ADMIN_EMAIL/PASSWORD), `routes/auth.py` guest email domain, `routes/chat.py` OpenRouter HTTP-Referer + X-OpenRouter-Title.
+  • `backend/.env`: ADMIN_EMAIL → `admin@slimlight.app`, ADMIN_PASSWORD → `SlimLight2026!`. `DB_NAME` left as-is to preserve existing data.
+  • Real-person specialist data deleted: `/app/frontend/src/pages/SpecialistsPage.jsx` removed, route `/specialists` removed from `App.js`. `backend/config.py` SPECIALISTS list emptied (was Leon Shakira a.k.a. Miron with photos + taplink). `AboutPage.jsx` rewritten — expert section + mirocare social links (t.me/wa.me/instagram/taplink) deleted; only `support@slimlight.app` contact remains. `AuthPage.jsx` MIRON_HERO photo import + img removed.
+  • Internal identifiers preserved (CSS `.miro-install-*`, page name `MiroRadio`, event `miro:show-install-prompt`, localStorage keys `miro_language`/`miro_lang_v3`) — not user-visible, renaming would break user preferences and is unnecessary.
+  • Verified visually: `/auth` shows "SlimLight" title, `/about` shows "About SlimLight" with no Miron/Shakira/mirocare references; backend running OK.
+
 
 ## Testing Status
 - Iteration 17 (backend+frontend): **100% pass** — 12/12 scenarios including 8 languages, gender switching, encryption, TTS, UI flows

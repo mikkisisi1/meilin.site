@@ -1,7 +1,7 @@
 {
-  "short_name": "Miro.Care",
-  "name": "Miro.Care — AI Psychologist",
-  "description": "Miro.Care — hybrid AI psychologist available 24/7. Secure, encrypted, multilingual.",
+  "short_name": "SlimLight",
+  "name": "SlimLight — AI Weight-Loss Coach",
+  "description": "SlimLight — hybrid AI weight-loss coach available 24/7. Secure, encrypted, multilingual.",
   "icons": [
     { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
     { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }

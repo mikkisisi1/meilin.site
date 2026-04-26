@@ -9,7 +9,6 @@ import VoiceSelect from '@/pages/VoiceSelect';
 import ChatPage from '@/pages/ChatPage';
 import TariffPage from '@/pages/TariffPage';
 import PaymentSuccess from '@/pages/PaymentSuccess';
-import SpecialistsPage from '@/pages/SpecialistsPage';
 import AboutPage from '@/pages/AboutPage';
 import ProfilePage from '@/pages/ProfilePage';
 import MiroRadio from '@/pages/MiroRadio';
@@ -33,7 +32,6 @@ function AppRoutes() {
       <Route path="/chat" element={<WaitForAuth><ChatPage /></WaitForAuth>} />
       <Route path="/tariffs" element={<WaitForAuth><TariffPage /></WaitForAuth>} />
       <Route path="/payment-success" element={<WaitForAuth><PaymentSuccess /></WaitForAuth>} />
-      <Route path="/specialists" element={<WaitForAuth><SpecialistsPage /></WaitForAuth>} />
       <Route path="/about" element={<WaitForAuth><AboutPage /></WaitForAuth>} />
       <Route path="/profile" element={<WaitForAuth><ProfilePage /></WaitForAuth>} />
       <Route path="/radio" element={<WaitForAuth><MiroRadio /></WaitForAuth>} />

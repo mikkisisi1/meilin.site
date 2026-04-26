@@ -69,7 +69,7 @@ export default function MiroRadio() {
           </div>
         </div>
 
-        <h2 className="radio-title">Miro Radio</h2>
+        <h2 className="radio-title">SlimLight Radio</h2>
         <p className="radio-desc">{t('musicDesc')}</p>
 
         <button

@@ -38,8 +38,8 @@ def get_openrouter_client():
             base_url="https://openrouter.ai/api/v1",
             api_key=os.environ.get("OPENROUTER_API_KEY", ""),
             default_headers={
-                "HTTP-Referer": "https://miro.care",
-                "X-OpenRouter-Title": "Miro.Care",
+                "HTTP-Referer": "https://slimlight.app",
+                "X-OpenRouter-Title": "SlimLight",
             },
         )
     return _openrouter_client

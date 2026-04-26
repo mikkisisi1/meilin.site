@@ -51,7 +51,7 @@ class ThemeUpdateRequest(BaseModel):
 @router.post("/auth/guest")
 async def create_guest(response: Response):
     guest_id = uuid.uuid4().hex[:8]
-    guest_email = f"guest_{guest_id}@demo.miro.care"
+    guest_email = f"guest_{guest_id}@demo.slimlight.app"
     user_doc = {
         "email": guest_email,
         "password_hash": "",

@@ -25,27 +25,7 @@ PROBLEMS = [
 ]
 
 # ---------- SPECIALISTS ----------
-SPECIALISTS = [
-    {
-        "id": "leon_shakira",
-        "name": "Leon Шакира",
-        "title": "Диетолог, нутрициолог, психолог",
-        "specialization": ["weight", "eating_disorder"],
-        "description": "Эксперт научно-спортивной ассоциации ISSA (USA). С 2012 года помог похудеть более 10 000 человек.",
-        "credentials": [
-            "ISSA (USA) — Мастер-тренер",
-            "Stanford University",
-            "Emory University",
-            "Edinburgh University",
-            "LMU Munich",
-            "University of North Carolina"
-        ],
-        "photo_url": "https://customer-assets.emergentagent.com/job_xicon-preview-3/artifacts/da8jruwh_bbSt44ErT9oMjoxUeM0T1pEHQxCQwYb0Q9QsI9mn.webp",
-        "photo_url_2": "https://customer-assets.emergentagent.com/job_xicon-preview-3/artifacts/p4a7djrm_a2ceHzRs7mSOhk3UJsLG4RwEWT4PfMmLizx1oiZo.webp",
-        "link": "https://shakiraleon.taplink.ws",
-        "is_featured": True,
-    }
-]
+SPECIALISTS = []
 
 # ---------- BOOKING CONFIG ----------
 BOOKING_PRICE = 200  # USD per hour

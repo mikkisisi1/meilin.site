@@ -1,4 +1,4 @@
-/* ===== MIRO.CARE — DARK GLASSMORPHISM THEME ===== */
+/* ===== SLIMLIGHT — DARK GLASSMORPHISM THEME ===== */
 
 /* ===== CSS VARIABLES ===== */
 :root {
@@ -540,7 +540,7 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   animation: neonPulse 2s ease-in-out infinite;
 }
 
-/* Avatars row — Miron + Oksana */
+/* Avatars row */
 .xc-chat-avatars-row {
   display: flex; align-items: center; gap: 10px;
 }

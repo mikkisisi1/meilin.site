@@ -1,4 +1,4 @@
-/* Miro.Care — PWA service worker.
+/* SlimLight — PWA service worker.
  * Strategy: always show the LATEST version on every visit.
  *   - index.html / navigations → network-first (fresh on every load)
  *   - JS/CSS/static assets     → network-first with cache fallback (fresh when online)
