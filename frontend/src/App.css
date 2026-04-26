@@ -1608,6 +1608,10 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   display: grid; grid-template-columns: repeat(2, 1fr);
   gap: 6px; padding: 4px 8px 12px;
 }
+@keyframes menuLangFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .menu-lang-btn {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 12px;
@@ -1616,8 +1620,18 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
   border-radius: 12px; cursor: pointer; font-size: 0.9rem;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-weight: 200; color: var(--text-secondary);
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  opacity: 0;
+  animation: menuLangFade 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+.menu-lang-btn:nth-child(1) { animation-delay: 0.04s; }
+.menu-lang-btn:nth-child(2) { animation-delay: 0.10s; }
+.menu-lang-btn:nth-child(3) { animation-delay: 0.16s; }
+.menu-lang-btn:nth-child(4) { animation-delay: 0.22s; }
+.menu-lang-btn:nth-child(5) { animation-delay: 0.28s; }
+.menu-lang-btn:nth-child(6) { animation-delay: 0.34s; }
+.menu-lang-btn:nth-child(7) { animation-delay: 0.40s; }
+.menu-lang-btn:nth-child(8) { animation-delay: 0.46s; }
 .menu-lang-btn:hover { border-color: rgba(255, 255, 255, 0.25); }
 .menu-lang-active { border-color: var(--accent); background: rgba(60, 140, 255, 0.1); color: var(--text); }
 .menu-lang-flag { font-size: 1.1rem; }
