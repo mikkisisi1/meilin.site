@@ -8,6 +8,10 @@ import { API_BASE, getToken } from '@/lib/apiClient';
  *
  * Fallback: if MediaSource or `audio/mpeg` is not supported (iOS Safari)
  * OR the MSE pipeline fails mid-stream → buffer into a Blob and play normally.
+ *
+ * Sentence queue API for streaming TTS:
+ *   resetTTSQueue(msgIndex, voice)  — start a new queue for an AI message
+ *   enqueueSentence(sentence)        — push a sentence; plays sequentially
  */
 export default function useAudioStream(user, audioElementRef) {
   const [playingTTS, setPlayingTTS] = useState(null);
@@ -15,6 +19,13 @@ export default function useAudioStream(user, audioElementRef) {
   const cancelledRef = useRef(false);
   const abortRef = useRef(null);
   const currentUrlRef = useRef(null);
+
+  // ---- Streaming sentence queue state ----
+  const queueRef = useRef([]);
+  const queueActiveRef = useRef(false);
+  const queueMsgIndexRef = useRef(null);
+  const queueVoiceRef = useRef(null);
+  const queueAbortRef = useRef(null);
 
   const clearAudioHandlers = useCallback(() => {
     const audio = audioElementRef?.current;
@@ -36,6 +47,14 @@ export default function useAudioStream(user, audioElementRef) {
       try { abortRef.current.abort(); } catch { /* noop */ }
       abortRef.current = null;
     }
+    if (queueAbortRef.current) {
+      try { queueAbortRef.current.abort(); } catch { /* noop */ }
+      queueAbortRef.current = null;
+    }
+    queueRef.current = [];
+    queueActiveRef.current = false;
+    queueMsgIndexRef.current = null;
+    queueVoiceRef.current = null;
     const audio = audioElementRef?.current;
     if (audio) {
       clearAudioHandlers();
@@ -56,6 +75,97 @@ export default function useAudioStream(user, audioElementRef) {
     });
   }, [stopTTS]);
 
+  // ---- Streaming sentence queue: fetch one sentence as MP3, play, then drain ----
+  const playNextInQueue = useCallback(async () => {
+    if (cancelledRef.current) return;
+    if (queueActiveRef.current) return;
+    const sentence = queueRef.current.shift();
+    if (!sentence) return;
+
+    queueActiveRef.current = true;
+    const msgIndex = queueMsgIndexRef.current;
+    const voice = queueVoiceRef.current || user?.selected_voice || 'female';
+    const token = getToken();
+    const controller = new AbortController();
+    queueAbortRef.current = controller;
+
+    try {
+      const response = await fetch(`${API_BASE}/tts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ text: sentence, voice }),
+        signal: controller.signal,
+      });
+      if (!response.ok || cancelledRef.current) {
+        queueActiveRef.current = false;
+        return;
+      }
+      const blob = await response.blob();
+      if (cancelledRef.current) return;
+      const url = URL.createObjectURL(blob);
+      const audio = audioElementRef?.current;
+      if (!audio) {
+        queueActiveRef.current = false;
+        return;
+      }
+      clearAudioHandlers();
+      revokeCurrentUrl();
+      currentUrlRef.current = url;
+      setPlayingTTS(msgIndex);
+
+      audio.onended = () => {
+        revokeCurrentUrl();
+        queueActiveRef.current = false;
+        if (queueRef.current.length > 0) {
+          playNextInQueue();
+        } else {
+          setPlayingTTS(null);
+        }
+      };
+      audio.onerror = () => {
+        revokeCurrentUrl();
+        queueActiveRef.current = false;
+        if (queueRef.current.length > 0) {
+          playNextInQueue();
+        } else {
+          setPlayingTTS(null);
+        }
+      };
+      audio.src = url;
+      try { await audio.play(); } catch { /* autoplay handled */ }
+    } catch (err) {
+      const benign = err?.name === 'AbortError';
+      if (!benign && process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('Sentence TTS error:', err?.message);
+      }
+      queueActiveRef.current = false;
+      if (!cancelledRef.current && queueRef.current.length > 0) {
+        playNextInQueue();
+      }
+    }
+  }, [user?.selected_voice, audioElementRef, clearAudioHandlers, revokeCurrentUrl]);
+
+  const resetTTSQueue = useCallback((msgIndex, voice) => {
+    if (!ttsEnabled) return;
+    stopTTS();
+    cancelledRef.current = false;
+    queueRef.current = [];
+    queueActiveRef.current = false;
+    queueMsgIndexRef.current = msgIndex;
+    queueVoiceRef.current = voice || user?.selected_voice || 'female';
+  }, [ttsEnabled, stopTTS, user?.selected_voice]);
+
+  const enqueueSentence = useCallback((sentence) => {
+    if (!ttsEnabled || !sentence || !sentence.trim()) return;
+    queueRef.current.push(sentence.trim());
+    if (!queueActiveRef.current) playNextInQueue();
+  }, [ttsEnabled, playNextInQueue]);
+
+  // ---- Existing single-shot playTTS (greeting, manual replay) ----
   const playTTS = useCallback(async (text, msgIndex, voiceOverride) => {
     if (!ttsEnabled || !audioElementRef?.current) return;
     stopTTS();
@@ -150,7 +260,6 @@ export default function useAudioStream(user, audioElementRef) {
       try {
         sourceBuffer = mediaSource.addSourceBuffer(mime);
       } catch {
-        // MSE rejected this MIME — tear down MSE, fall back to blob.
         clearAudioHandlers();
         try { audio.removeAttribute('src'); audio.load(); } catch { /* noop */ }
         revokeCurrentUrl();
@@ -198,11 +307,8 @@ export default function useAudioStream(user, audioElementRef) {
             appendNext();
           }
         }
-      } catch { /* stream aborted or read failed — onerror/onended will clean up */ }
+      } catch { /* stream aborted or read failed */ }
     } catch (err) {
-      // AbortError (user stopped) and DataCloneError (CRA HMR trying to
-      // serialize Request/Response across dev postMessage) are expected and
-      // do not affect audio playback — silence them.
       const benign = err?.name === 'AbortError'
         || err?.name === 'DataCloneError'
         || err?.code === 20
@@ -217,5 +323,5 @@ export default function useAudioStream(user, audioElementRef) {
     }
   }, [ttsEnabled, user?.selected_voice, stopTTS, audioElementRef, clearAudioHandlers, revokeCurrentUrl]);
 
-  return { playTTS, stopTTS, playingTTS, ttsEnabled, toggleTTS };
+  return { playTTS, stopTTS, playingTTS, ttsEnabled, toggleTTS, resetTTSQueue, enqueueSentence };
 }

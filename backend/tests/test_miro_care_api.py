@@ -7,7 +7,7 @@ import requests
 import os
 import uuid
 
-BASE_URL: str = os.environ.get('REACT_APP_BACKEND_URL', 'https://slim-you.preview.emergentagent.com').rstrip('/')
+BASE_URL: str = os.environ.get('REACT_APP_BACKEND_URL', 'https://slim-you-1.preview.emergentagent.com').rstrip('/')
 
 # Test credentials from environment variables (fallback to test_credentials.md defaults)
 ADMIN_EMAIL: str = os.environ.get("TEST_ADMIN_EMAIL", "admin@miro.care")
@@ -345,7 +345,7 @@ class TestPaymentEndpoints:
         response = requests.post(f"{BASE_URL}/api/payments/create-checkout",
             json={
                 "tariff_id": "hour",
-                "origin_url": "https://slim-you.preview.emergentagent.com"
+                "origin_url": "https://slim-you-1.preview.emergentagent.com"
             },
             headers={"Authorization": f"Bearer {auth_token}"}
         )

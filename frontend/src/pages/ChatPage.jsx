@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Mic, Camera } from 'lucide-react';
 import { toast } from 'sonner';
@@ -55,15 +55,19 @@ export default function ChatPage() {
   // Persistent audio element ref (like Xicon) — better mobile compatibility
   const audioElementRef = useRef(null);
 
-  const { playTTS, stopTTS, playingTTS, ttsEnabled, toggleTTS } = useAudioStream(user, audioElementRef);
+  const { playTTS, stopTTS, playingTTS, ttsEnabled, toggleTTS, resetTTSQueue, enqueueSentence } = useAudioStream(user, audioElementRef);
 
-  const handleAIMessage = useCallback((message, msgIndex) => {
-    if (ttsEnabled) {
-      setTimeout(() => playTTS(message, msgIndex, activeVoice), 100);
-    }
-  }, [ttsEnabled, playTTS, activeVoice]);
+  const handleAIMessage = useCallback(() => {
+    // Streaming pipeline plays sentences as they arrive — no-op here.
+    // Kept to satisfy useChat hook signature.
+  }, []);
 
-  const { messages, sendMessage, loading, sessionId, setMessages, historyLoaded, startNewSession } = useChat(user, lang, refreshUser, handleAIMessage, activeVoice);
+  const ttsBridge = useMemo(
+    () => ({ resetTTSQueue, enqueueSentence }),
+    [resetTTSQueue, enqueueSentence]
+  );
+
+  const { messages, sendMessage, loading, sessionId, setMessages, historyLoaded, startNewSession, switchVoice } = useChat(user, lang, refreshUser, handleAIMessage, activeVoice, ttsBridge);
 
   // If history loaded with messages, skip voice selection
   useEffect(() => {
@@ -118,11 +122,12 @@ export default function ChatPage() {
   }, [messages, loading]);
 
   // Voice selection handler — первый выбор ИЛИ переключение агента.
-  // При переключении стартуем новый диалог с нуля: новый session_id, полное приветствие.
+  // При переключении подменяем историю чата на ту, что хранится для выбранного агента.
   const handleVoiceSelect = async (voice) => {    // Клик по уже активному агенту — ничего не делаем.
     if (voice === activeVoice) return;
 
     const isSwitch = voiceChosen && messages.length > 0;
+    // Сохраняем активный голос ДО switchVoice, чтобы хук корректно зачислил текущие сообщения предыдущему агенту.
     setActiveVoice(voice);
     setVoiceChosen(true);
 
@@ -136,11 +141,36 @@ export default function ChatPage() {
     // Остановить текущую озвучку предыдущего агента.
     stopTTS();
 
-    // При переключении стартуем новую сессию — чистая история на сервере и в UI.
     if (isSwitch) {
-      startNewSession();
+      // Подмена истории на ту, что у нового агента (или пустая).
+      switchVoice(voice);
+      // Если у нового агента ещё нет истории — показать приветствие.
+      const hasStored = messages.some(() => false); // placeholder — real check inside hook via setMessages
+      // После switchVoice сообщения в state — это история нового агента.
+      // Если она пустая — добавим приветствие.
+      setTimeout(() => {
+        setMessages((prev) => {
+          if (prev.length === 0) {
+            const greetingText = getGreeting(lang, voice) || GREETINGS[voice];
+            const greetingMsg = {
+              role: 'ai',
+              content: greetingText,
+              id: `greeting_${voice}_${Date.now()}`,
+            };
+            if (ttsEnabled) {
+              setTimeout(() => playTTS(greetingText, 0, voice), 100);
+            }
+            return [greetingMsg];
+          }
+          return prev;
+        });
+      }, 0);
+      // Подавим неиспользуемое hasStored
+      void hasStored;
+      return;
     }
 
+    // Первый выбор агента — стандартное приветствие.
     const greetingText = getGreeting(lang, voice) || GREETINGS[voice];
     setMessages([{
       role: 'ai',
@@ -148,8 +178,7 @@ export default function ChatPage() {
       id: `greeting_${voice}_${Date.now()}`,
     }]);
 
-    // Приветствие озвучиваем: при первом выборе — из кэша, при переключении — live (кэш устарел по языку).
-    const cachedUrl = !isSwitch ? greetingCacheRef.current[voice] : null;
+    const cachedUrl = greetingCacheRef.current[voice];
     if (cachedUrl && audioElementRef.current) {
       const audio = audioElementRef.current;
       audio.src = cachedUrl;

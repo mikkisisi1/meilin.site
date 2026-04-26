@@ -4,6 +4,7 @@ Includes AI logic (OpenRouter + DuckDuckGo search).
 """
 import os
 import re
+import json
 import secrets
 import asyncio
 import logging
@@ -11,6 +12,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from bson import ObjectId
 
@@ -251,6 +253,46 @@ async def call_openrouter(messages: list, model: str = "anthropic/claude-sonnet-
                 text = _truncate_to_sentence(text)
             return text
         raise
+
+async def stream_openrouter(messages: list, model: str = "anthropic/claude-sonnet-4.5", max_tokens: int = 600):
+    """Async generator yielding text deltas from OpenRouter streaming completion."""
+    client = get_openrouter_client()
+    cached_messages = messages
+    if (
+        model.startswith("anthropic/")
+        and messages
+        and messages[0].get("role") == "system"
+        and isinstance(messages[0].get("content"), str)
+    ):
+        cached_messages = [
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": messages[0]["content"],
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
+            }
+        ] + messages[1:]
+    stream = await client.chat.completions.create(
+        model=model,
+        messages=cached_messages,
+        max_tokens=max_tokens,
+        temperature=0.7,
+        stream=True,
+    )
+    async for chunk in stream:
+        try:
+            delta = chunk.choices[0].delta
+            content = getattr(delta, "content", None)
+        except (IndexError, AttributeError):
+            content = None
+        if content:
+            yield content
+
+
 
 
 def _truncate_to_sentence(text: str) -> str:
@@ -526,6 +568,7 @@ async def chat_endpoint(req: ChatRequest, request: Request):
                 "ai_response": encrypt_text(ai_response),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "problem": req.problem or user.get("selected_problem"),
+                "voice": req.voice or user.get("selected_voice") or "male",
             })
 
             if not user.get("user_display_name"):
@@ -558,6 +601,116 @@ async def chat_endpoint(req: ChatRequest, request: Request):
         if "401" in err_str or "No cookie auth credentials" in err_str or "Unauthorized" in err_str:
             raise HTTPException(503, "AI provider key not configured. Please set OPENROUTER_API_KEY.")
         raise HTTPException(500, f"Chat error: {err_str}")
+
+
+@router.post("/chat/stream")
+async def chat_stream_endpoint(req: ChatRequest, request: Request):
+    """SSE streaming variant of /chat. Streams Claude tokens as they arrive.
+    Frontend accumulates text and dispatches sentence-by-sentence TTS in parallel.
+
+    Event format (one per line, JSON):
+      data: {"type":"delta","text":"..."}
+      data: {"type":"done","full_text":"..."}
+      data: {"type":"error","message":"..."}
+    """
+    try:
+        user = await get_current_user(request)
+    except Exception:
+        user = {"_id": None, "free_messages_count": 0, "minutes_left": 999, "is_paid_session_active": True, "selected_language": "ru"}
+    user_id = user["_id"]
+
+    is_free_phase, has_minutes, free_count = check_user_access(user)
+    if not is_free_phase and not has_minutes:
+        async def gated():
+            payload = {"type": "tariff_prompt", "message": "Ваши бесплатные сообщения закончились. Пожалуйста, выберите тариф для продолжения."}
+            yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+        return StreamingResponse(gated(), media_type="text/event-stream")
+
+    session_id = f"{user_id or 'anon'}_{req.session_id}"
+    await _init_session(
+        session_id,
+        req.problem or user.get("selected_problem"),
+        req.language or user.get("selected_language", "ru"),
+        user_id,
+        req.voice or user.get("selected_voice") or "male",
+    )
+
+    chat_histories[session_id].append({"role": "user", "content": req.message})
+
+    length_mode = pick_length_mode(req.message)
+    length_hint = build_length_directive(length_mode)
+    max_tokens = LENGTH_TOKEN_LIMITS.get(length_mode, 220)
+    base_messages = _trim_messages(chat_histories[session_id])
+    messages = [dict(m) for m in base_messages]
+    if messages and messages[0].get("role") == "system":
+        messages[0]["content"] = messages[0]["content"] + length_hint
+
+    async def event_gen():
+        full_text_parts = []
+        try:
+            async for delta in stream_openrouter(messages, max_tokens=max_tokens):
+                full_text_parts.append(delta)
+                yield f"data: {json.dumps({'type': 'delta', 'text': delta}, ensure_ascii=False)}\n\n"
+        except Exception as e:
+            logger.error(f"Stream error: {e}")
+            # Fallback to non-streaming Mistral on Claude failure
+            try:
+                fallback_text = await call_openrouter(messages, model="mistralai/mistral-small-3.1-24b-instruct", max_tokens=max_tokens)
+                full_text_parts = [fallback_text]
+                yield f"data: {json.dumps({'type': 'delta', 'text': fallback_text}, ensure_ascii=False)}\n\n"
+            except Exception as e2:
+                yield f"data: {json.dumps({'type': 'error', 'message': str(e2)}, ensure_ascii=False)}\n\n"
+                return
+
+        full_text = "".join(full_text_parts)
+        # Handle [SEARCH:] tag if present
+        if SEARCH_TAG_RE.search(full_text):
+            search_resolved = await _handle_search_tag(session_id, full_text)
+            full_text = search_resolved
+            yield f"data: {json.dumps({'type': 'replace', 'text': full_text}, ensure_ascii=False)}\n\n"
+
+        full_text = strip_emotion_markers(full_text)
+        chat_histories[session_id].append({"role": "assistant", "content": full_text})
+
+        # Persist + bookkeeping
+        if user_id:
+            try:
+                await db.chat_messages.insert_one({
+                    "user_id": user_id,
+                    "session_id": req.session_id,
+                    "user_message": encrypt_text(req.message),
+                    "ai_response": encrypt_text(full_text),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "problem": req.problem or user.get("selected_problem"),
+                    "voice": req.voice or user.get("selected_voice") or "male",
+                })
+                if not user.get("user_display_name"):
+                    await _save_name_if_found(user_id, req.message, free_count)
+                update_fields = build_counter_updates(user, is_free_phase, free_count, full_text)
+                if update_fields:
+                    await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_fields})
+
+                user_msg_count = sum(1 for m in chat_histories.get(session_id, []) if m.get("role") == "user")
+                if user_msg_count > 0 and user_msg_count % 6 == 0:
+                    asyncio.create_task(update_session_notes(user_id, req.session_id))
+
+                homework = extract_homework(full_text)
+                if homework:
+                    asyncio.create_task(save_homework(user_id, homework))
+            except Exception as e:
+                logger.warning(f"Stream persistence failed: {e}")
+
+        yield f"data: {json.dumps({'type': 'done', 'full_text': full_text}, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        event_gen(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-store",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @router.post("/chat/image")

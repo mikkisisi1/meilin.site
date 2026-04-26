@@ -1,0 +1,60 @@
+{
+  "summary": "Iteration 24 (streaming chat + per-agent independent histories + warm system prompt) tested. BACKEND: 6/6 pytest pass — /api/chat/stream returns valid SSE with >=2 delta events + 1 done event, full_text concatenates deltas, Leon/Kylie persona is correctly differentiated (male->Leon, female->Kylie), /api/chat non-streaming still returns 200 with voice persisted, voice_config.EMOTION_MARKERS['base'] now contains [warm], and SYSTEM_PROMPT contains the new style line 'спокойный, профессиональный, внимательный, тёплый'. FRONTEND: 1 CRITICAL bug found — per-voice independent histories are NOT restored when switching BACK to a previously-used voice. Switching from Leon (with messages) → Kylie correctly hides Leon messages and seeds Kylie greeting, but switching Kylie → Leon (back) loses Leon's prior conversation entirely; screen renders empty/initial state. The ttsBridge wiring + send button + chat-messages container all work; the bug is in the per-voice message persistence layer (sessionsByVoiceRef / messagesByVoiceRef in useChat.js or switchVoice handling in ChatPage.jsx). NOTE: streaming via /api/chat/stream could not be exercised end-to-end through the UI because the chat is gated by a 13-question client-side intake flow that intercepts messages locally before useChat.sendMessage hits the streaming endpoint — backend is verified working via pytest, but real streaming + sentence-by-sentence TTS will only kick in AFTER intake completion and was not live-validated. PWA install banner overlaps the bottom of mobile viewport (carry-over from iter23).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "useChat.js / ChatPage.jsx switchVoice flow",
+        "issue": "Switching agent back to a previously-used voice does NOT restore that voice's prior messages. Repro: pick Leon → send msg X → switch to Kylie (Leon messages correctly hidden) → switch back to Leon → expected: msg X visible again; actual: chat is empty / shows only initial state. Same in reverse for Kylie. messagesByVoiceRef[prevVoice] does not appear to be saved or read correctly on switch. Symmetric bug confirmed in both directions.",
+        "selector": "[data-testid=\"avatar-leon-btn\"] / [data-testid=\"avatar-kylie-btn\"] / [data-testid=\"chat-messages\"]",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Streaming via /api/chat/stream from UI",
+        "issue": "0 calls to /api/chat/stream were observed when sending messages because the client-side intake flow (13 questions in /app/frontend/src/config/intakeQuestions.js) intercepts the first messages locally and renders pre-baked questions instead of routing through useChat.sendMessage. /api/chat/stream backend works (verified by pytest), but UI streaming + sentence-by-sentence TTS were not live-validated end-to-end. Recommend either bypassing intake for testing or validating after intake completion.",
+        "affected_selectors": ["[data-testid=\"chat-input\"]", "[data-testid=\"send-btn\"]"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "ChatPage mobile bottom",
+        "issues": ["PWA 'The app is smoother / Install' banner overlaps input bar on first load (carry-over from iter22/23). Pre-existing console errors: 'TTS greeting cache miss: Failed to execute postMessage on Window: Request object could not be cloned'."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration24_streaming.py",
+    "/app/test_reports/pytest/pytest_results_iter24.xml"
+  ],
+  "action_items": [
+    "FIX (HIGH): per-voice message history restoration on switch-back. In /app/frontend/src/hooks/useChat.js switchVoice() — verify that BEFORE swapping activeVoice, the current `messages` array is written to messagesByVoiceRef.current[prevVoice], and AFTER swap, messagesByVoiceRef.current[newVoice] (if present) replaces the messages state. Confirm ChatPage.jsx isn't unconditionally seeding the greeting and overwriting restored history when stored history exists.",
+    "(Verify) End-to-end streaming + sentence TTS once intake is completed (or add a way to skip intake in test mode). Backend SSE works; only the post-intake UI integration is unverified.",
+    "(Cosmetic) Auto-dismiss / hide PWA install banner during first-load chat session so it doesn't overlap input on mobile."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/routes/chat.py chat_stream_endpoint (line 606) is correct: returns StreamingResponse with media_type='text/event-stream', emits delta/done/replace/error events as documented, persists chat_messages with 'voice' field for authenticated users only, and falls back to Mistral non-stream on Claude failure.",
+    "/app/backend/routes/chat.py stream_openrouter (line 257) correctly applies anthropic cache_control and yields content deltas; safe AttributeError/IndexError guarding.",
+    "/app/backend/voice_config.py EMOTION_MARKERS['base'] now '[calm][professional][attentive][warm]' — matches spec.",
+    "/app/backend/config.py SYSTEM_PROMPT contains 'спокойный, профессиональный, внимательный, тёплый' — matches spec.",
+    "/app/frontend/src/hooks/useChat.js sendMessage (line 110) is wired to /chat/stream with proper SSE parsing (split by \\n\\n, slice(5) for data:), correct delta/done/replace/error/tariff_prompt handling. Sentence flushing via extractCompleteSentences + bridge.enqueueSentence.",
+    "BUG: per-voice history restore on switch-back is broken. Suspected cause: in switchVoice() (useChat.js) or onVoiceChange in ChatPage.jsx, the current messages may not be persisted to messagesByVoiceRef[prevVoice] before activeVoice swap; or the greeting-seed effect overwrites restored history because it doesn't gate on len(restored)>0.",
+    "PWA install banner / TTS greeting cache miss errors are pre-existing from iter22/23, not regression."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration24_streaming.py",
+    "/app/test_reports/pytest/pytest_results_iter24.xml",
+    "/app/test_reports/iteration_24.json"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "50% — voice-switch hides correctly going one way; restoration on switch-back fails; streaming endpoint not reachable through UI before intake completes"},
+  "test_credentials": {"guest": "POST /api/auth/guest (anonymous)", "admin": "admin@miro.care / MiroCare2026!"},
+  "seed_data_creation": "TEST_iter24_* session_ids on /api/chat and /api/chat/stream against the live backend (anonymous, not persisted to DB).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend streaming SSE is fully verified (test_iteration24_streaming.py — 6 tests). Critical open frontend bug: switching back to a previously-active voice loses that voice's chat history. Repro on mobile (390x844) at https://slim-you-1.preview.emergentagent.com/chat: click avatar-leon-btn, type message, send; click avatar-kylie-btn (Leon messages correctly hidden); click avatar-leon-btn (Leon's previous message NOT restored — view shows only initial Leon greeting). Symmetric for Kylie. Look at /app/frontend/src/hooks/useChat.js switchVoice() and ChatPage.jsx onVoiceChange handler — the persist-on-leave step is suspected missing or the seed-greeting effect is overwriting. Also note: /api/chat/stream endpoint is never called via UI as long as the 13-question intake (q2..q14 in /app/frontend/src/config/intakeQuestions.js) is intercepting messages — to live-test streaming + sentence-by-sentence TTS you must complete intake first, or temporarily set intakeStep=-2 in initial state.",
+  "rca_of_issue": "Frontend per-voice independent history regression: messagesByVoiceRef[prevVoice] is not saved (or seed greeting effect overwrites it) on the switch-back path. Mitigation: in useChat.switchVoice, snapshot current messages BEFORE setActiveVoice, write into messagesByVoiceRef.current[prevVoice]; on the new-voice load path, only seed greeting if messagesByVoiceRef.current[newVoice] is undefined OR empty. Also ensure ChatPage greeting effect is gated on (messages.length === 0)."
+}

@@ -10,7 +10,7 @@ import requests
 from pymongo import MongoClient
 from bson import ObjectId
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://slim-you.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://slim-you-1.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
