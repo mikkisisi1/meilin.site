@@ -42,7 +42,7 @@ def _public_origin() -> str:
     return (
         os.environ.get("PUBLIC_ORIGIN")
         or os.environ.get("FRONTEND_URL")
-        or "https://ai-psych-slim.preview.emergentagent.com"
+        or "https://leon-kylie-chat.preview.emergentagent.com"
     ).rstrip("/")
 
 
