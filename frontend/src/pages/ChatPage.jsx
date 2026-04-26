@@ -127,7 +127,14 @@ export default function ChatPage() {
     if (voice === activeVoice) return;
 
     const isSwitch = voiceChosen && messages.length > 0;
-    // Сохраняем активный голос ДО switchVoice, чтобы хук корректно зачислил текущие сообщения предыдущему агенту.
+    const prevVoice = activeVoice; // снимок ДО любого await
+    let restoredHistory = false;
+    if (isSwitch) {
+      // Сохраняем историю текущего агента и подменяем на сохранённую историю выбранного — синхронно, до await.
+      restoredHistory = switchVoice(voice, prevVoice);
+      stopTTS();
+    }
+
     setActiveVoice(voice);
     setVoiceChosen(true);
 
@@ -138,39 +145,27 @@ export default function ChatPage() {
       if (process.env.NODE_ENV === 'development') console.error('Voice save failed:', err.message);
     }
 
-    // Остановить текущую озвучку предыдущего агента.
-    stopTTS();
+    if (isSwitch && restoredHistory) {
+      // У нового агента уже есть история — ничего больше не делаем.
+      return;
+    }
 
-    if (isSwitch) {
-      // Подмена истории на ту, что у нового агента (или пустая).
-      switchVoice(voice);
-      // Если у нового агента ещё нет истории — показать приветствие.
-      const hasStored = messages.some(() => false); // placeholder — real check inside hook via setMessages
-      // После switchVoice сообщения в state — это история нового агента.
-      // Если она пустая — добавим приветствие.
-      setTimeout(() => {
-        setMessages((prev) => {
-          if (prev.length === 0) {
-            const greetingText = getGreeting(lang, voice) || GREETINGS[voice];
-            const greetingMsg = {
-              role: 'ai',
-              content: greetingText,
-              id: `greeting_${voice}_${Date.now()}`,
-            };
-            if (ttsEnabled) {
-              setTimeout(() => playTTS(greetingText, 0, voice), 100);
-            }
-            return [greetingMsg];
-          }
-          return prev;
-        });
-      }, 0);
-      // Подавим неиспользуемое hasStored
-      void hasStored;
+    if (isSwitch && !restoredHistory) {
+      // У нового агента истории нет — посеять приветствие.
+      const greetingText = getGreeting(lang, voice) || GREETINGS[voice];
+      setMessages([{
+        role: 'ai',
+        content: greetingText,
+        id: `greeting_${voice}_${Date.now()}`,
+      }]);
+      if (ttsEnabled) {
+        setTimeout(() => playTTS(greetingText, 0, voice), 100);
+      }
       return;
     }
 
     // Первый выбор агента — стандартное приветствие.
+    stopTTS();
     const greetingText = getGreeting(lang, voice) || GREETINGS[voice];
     setMessages([{
       role: 'ai',

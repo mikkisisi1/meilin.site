@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 25 FRONTEND-ONLY retest — both high-priority items from iter24 are FIXED and verified end-to-end on the live preview URL (https://slim-you-1.preview.emergentagent.com) at mobile viewport 390x844.\n\n[1] Per-agent independent histories (Leon vs Kylie): PASS. Repro: BEGIN → click avatar-leon-btn → type 'Test' → send (which triggers startIntake and renders Leon greeting + 'Test' user msg + intake intro 'Приятно познакомиться, Test!' + Q2 options 'Для себя'/'Для близкого человека'). Captured Leon innerText length=301. Switched to avatar-kylie-btn → only Kylie greeting visible (innerText length=68); Leon's user msg & intake intro correctly hidden. Switched BACK to avatar-leon-btn → ALL Leon content fully restored: greeting + 'Test' user msg + intake intro + Q2 with both option buttons. innerText BEFORE == innerText AFTER (byte-exact). The fix in useChat.switchVoice(newVoice, prevVoice) — explicit prevVoice snapshot before any await + ChatPage seeding greeting only when no stored history — is working as intended.\n\n[2] Streaming via /api/chat/stream from UI: PASS. After Leon was selected and 'Test' name was sent, a manual Russian message 'Привет, как дела?' was sent through chat-input → send-btn. Network log captured: POST https://slim-you-1.preview.emergentagent.com/api/chat/stream (1 call). Backend SSE endpoint is reachable from the UI as soon as userName is set; intake completion is NOT a hard prerequisite for /chat/stream to fire — any user free-form message after the name step routes through useChat.sendMessage → /chat/stream.\n\nNo regression observed. PWA install banner / TTS greeting cache miss console messages from prior iterations are unchanged (cosmetic, pre-existing).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "ChatPage mobile",
+        "issues": ["(carry-over, cosmetic) Console: 'TTS greeting cache miss: Failed to execute postMessage on Window: Request object could not be cloned' on initial chat load. PWA install banner overlap noted in iter22/23 — not re-validated this run."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_25.json",
+    "/app/backend/tests/test_iteration24_streaming.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/app/frontend/src/hooks/useChat.js switchVoice(newVoice, prevVoice) correctly snapshots messages into messagesByVoiceRef.current[fromVoice] BEFORE any state mutation; returns boolean (true if stored history exists for newVoice). Caller in ChatPage.handleVoiceSelect captures prevVoice synchronously BEFORE any await — race window is closed.",
+    "/app/frontend/src/pages/ChatPage.jsx handleVoiceSelect now correctly gates greeting-seeding behind `if (isSwitch && !restoredHistory)` so the seed effect cannot overwrite restored per-voice history.",
+    "Streaming wiring (/api/chat/stream) confirmed live from UI: POST observed in network log immediately after a free-form user message post-name. SSE delta/done parsing path in useChat.sendMessage is exercised in production."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not retested (per request)", "frontend": "100% — both targeted bugs fixed"},
+  "test_credentials": {"flow": "anonymous guest (POST /api/auth/guest auto-issued by app on first chat call)"},
+  "seed_data_creation": "None persisted (anonymous flow, no admin login).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "iter25 verified the two iter24 follow-ups: (a) per-agent independent histories correctly preserved/restored on Leon↔Kylie switch — implementation in /app/frontend/src/hooks/useChat.js switchVoice(newVoice, prevVoice) and /app/frontend/src/pages/ChatPage.jsx handleVoiceSelect (prevVoice captured before await; greeting only seeded when no stored history); (b) /api/chat/stream is invoked from UI for any user free-form message once userName is captured (the 13-question intake does NOT block streaming — name → next message already goes through useChat.sendMessage → /chat/stream). If retesting in future iterations, the fast path is: BEGIN → avatar-leon-btn → type 'Test' → send (this seeds enough Leon-specific history) → switch via avatar-kylie-btn → switch back via avatar-leon-btn → assert chat-messages innerText is byte-exact to pre-switch snapshot.",
+  "rca_of_issue": "Iter24 root cause was that switchVoice() relied on activeVoiceRef.current to identify the OUTGOING voice, but ChatPage.handleVoiceSelect awaited apiClient.put('/user/voice') before calling switchVoice — by then setActiveVoice had already updated state and the ref tracked the NEW voice, so messages were saved to the wrong key (or to the same key being read). Fix: switchVoice now requires explicit prevVoice argument captured BEFORE any await; ChatPage calls switchVoice synchronously with the snapshot. Additionally, greeting-seed logic now only runs when restoredHistory === false. Verified passing in iter25 — Leon innerText length identical (301 chars) before and after the round-trip switch."
+}

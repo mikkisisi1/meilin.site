@@ -51,20 +51,21 @@ export default function useChat(user, lang, refreshUser, onAIMessage, activeVoic
   }, []);
 
   // Switch active voice — swap visible messages with that voice's history.
-  const switchVoice = useCallback((newVoice) => {
-    const prevVoice = activeVoiceRef.current;
-    if (prevVoice && prevVoice !== newVoice) {
-      // Save current visible messages to previous voice bucket.
-      messagesByVoiceRef.current[prevVoice] = messages;
+  // prevVoice MUST be passed explicitly because the caller may have already updated activeVoice state
+  // before this runs (e.g. across an await), which would make activeVoiceRef.current stale.
+  const switchVoice = useCallback((newVoice, prevVoice) => {
+    const fromVoice = prevVoice || activeVoiceRef.current;
+    if (fromVoice && fromVoice !== newVoice) {
+      messagesByVoiceRef.current[fromVoice] = messages;
     }
-    // Restore stored messages for new voice if any.
     const stored = messagesByVoiceRef.current[newVoice];
-    if (Array.isArray(stored)) {
+    if (Array.isArray(stored) && stored.length > 0) {
       setMessages(stored);
-    } else {
-      setMessages([]);
+      return true; // history restored
     }
+    setMessages([]);
     getOrCreateSession(newVoice);
+    return false; // no stored history
   }, [messages, getOrCreateSession]);
 
   useEffect(() => {
