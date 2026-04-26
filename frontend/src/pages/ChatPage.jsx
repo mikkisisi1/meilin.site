@@ -18,7 +18,7 @@ import useChat from '@/hooks/useChat';
 import useSpeechRecognition from '@/hooks/useSpeechRecognition';
 import useImageUpload from '@/hooks/useImageUpload';
 import apiClient, { API_BASE, getToken } from '@/lib/apiClient';
-import { INTAKE_QUESTIONS, INTAKE_INTRO, INTAKE_OUTRO, nextIntakeStep, buildIntakeSummary } from '@/config/intakeQuestions';
+import { getIntakeQuestions, getIntakeIntro, getIntakeOutro, nextIntakeStep, buildIntakeSummary } from '@/config/intakeQuestions';
 
 const GREETINGS = {
   male: "Hi, I'm Leon — I'm here to support you.\nHow are you feeling today?",
@@ -185,12 +185,14 @@ export default function ChatPage() {
 
   // Text sending
   const startIntake = useCallback((name) => {
+    const introText = getIntakeIntro(lang, name);
     const introMsg = {
       role: 'ai',
-      content: INTAKE_INTRO(name),
+      content: introText,
       id: `intake_intro_${Date.now()}`,
     };
-    const firstQ = INTAKE_QUESTIONS[0];
+    const questions = getIntakeQuestions(lang);
+    const firstQ = questions[0];
     const qMsg = {
       role: 'ai',
       content: '',
@@ -200,7 +202,11 @@ export default function ChatPage() {
     };
     setMessages((prev) => [...prev, introMsg, qMsg]);
     setIntakeStep(0);
-  }, [setMessages]);
+    // Voice intro + first question text in user's language.
+    if (ttsEnabled && activeVoice) {
+      setTimeout(() => playTTS(`${introText} ${firstQ.text}`, 0, activeVoice), 150);
+    }
+  }, [setMessages, lang, ttsEnabled, activeVoice, playTTS]);
 
   const handleIntakeAnswer = useCallback((qId, answerText, extraFields) => {
     // Mark the current question message as answered and append user's answer.
@@ -214,20 +220,23 @@ export default function ChatPage() {
     const newAnswers = { ...intakeAnswers, [qId]: answerText, ...(extraFields || {}) };
     setIntakeAnswers(newAnswers);
 
-    const nextIdx = nextIntakeStep(newAnswers, INTAKE_QUESTIONS.findIndex((q) => q.id === qId));
+    const questions = getIntakeQuestions(lang);
+    const nextIdx = nextIntakeStep(newAnswers, questions.findIndex((q) => q.id === qId), lang);
     if (nextIdx === -1) {
-      // Intake done — send consolidated summary to backend as a single user message.
-      const summary = buildIntakeSummary(userName, newAnswers);
+      const summary = buildIntakeSummary(userName, newAnswers, lang);
+      const outroText = getIntakeOutro(lang, userName);
       setIntakeStep(-2);
       setMessages((prev) => [...prev, {
         role: 'ai',
-        content: INTAKE_OUTRO(userName),
+        content: outroText,
         id: `intake_outro_${Date.now()}`,
       }]);
-      // Silently push intake context to backend (invisible priming message).
+      if (ttsEnabled && activeVoice) {
+        setTimeout(() => playTTS(outroText, 0, activeVoice), 150);
+      }
       setTimeout(() => sendMessage(summary), 300);
     } else {
-      const nextQ = INTAKE_QUESTIONS[nextIdx];
+      const nextQ = questions[nextIdx];
       setMessages((prev) => [...prev, {
         role: 'ai',
         content: '',
@@ -236,8 +245,11 @@ export default function ChatPage() {
         intakeAnswered: false,
       }]);
       setIntakeStep(nextIdx);
+      if (ttsEnabled && activeVoice) {
+        setTimeout(() => playTTS(nextQ.text, 0, activeVoice), 150);
+      }
     }
-  }, [intakeAnswers, userName, setMessages, sendMessage]);
+  }, [intakeAnswers, userName, setMessages, sendMessage, lang, ttsEnabled, activeVoice, playTTS]);
 
   const handleSend = useCallback((text) => {
     const msg = text || input;

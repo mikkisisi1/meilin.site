@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { getIntakeButtons } from '@/config/intakeQuestions';
 
 /**
  * Intake question card rendered inline inside the chat message list.
- * Styles match existing xc-chat-* theme (pill-shaped outlined buttons).
+ * Localized for all 8 supported UI languages.
  */
 export default function IntakeCard({ question, onAnswer }) {
+  const { lang } = useLanguage();
+  const labels = getIntakeButtons(lang);
+
   const [selected, setSelected] = useState(question.type.startsWith('multi') ? [] : '');
   const [custom, setCustom] = useState('');
   const [fields, setFields] = useState({});
@@ -18,7 +23,7 @@ export default function IntakeCard({ question, onAnswer }) {
       setSelected((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]);
     } else {
       setSelected(opt);
-      // Для single без кастомного поля — отправляем сразу.
+      // Single without custom — submit immediately.
       if (!hasCustom) onAnswer(question.id, opt);
     }
   };
@@ -38,7 +43,7 @@ export default function IntakeCard({ question, onAnswer }) {
     const weight = (fields.weight || '').trim();
     const height = (fields.height || '').trim();
     if (!age || !weight || !height) return;
-    onAnswer(question.id, `Возраст: ${age}, Вес: ${weight} кг, Рост: ${height} см`, {
+    onAnswer(question.id, `${labels.field_age}: ${age}, ${labels.field_weight}: ${weight}, ${labels.field_height}: ${height}`, {
       q4_age: age, q4_weight: weight, q4_height: height,
     });
   };
@@ -54,14 +59,14 @@ export default function IntakeCard({ question, onAnswer }) {
               className="xc-intake-input"
               type="number"
               inputMode="numeric"
-              placeholder={f.label}
+              placeholder={labels[`field_${f.key}`] || f.label}
               value={fields[f.key] || ''}
               onChange={(e) => setFields((p) => ({ ...p, [f.key]: e.target.value }))}
               data-testid={`intake-${question.id}-${f.key}`}
             />
           ))}
           <button className="xc-intake-submit" onClick={submitData} data-testid={`intake-${question.id}-submit`}>
-            Далее
+            {labels.next}
           </button>
         </div>
       ) : (
@@ -82,7 +87,7 @@ export default function IntakeCard({ question, onAnswer }) {
           {hasCustom && (
             <input
               className="xc-intake-custom"
-              placeholder="Свой вариант..."
+              placeholder={labels.custom}
               value={custom}
               onChange={(e) => setCustom(e.target.value)}
               data-testid={`intake-${question.id}-custom`}
@@ -90,7 +95,7 @@ export default function IntakeCard({ question, onAnswer }) {
           )}
           {hasCustom && (
             <button className="xc-intake-submit" onClick={submit} data-testid={`intake-${question.id}-submit`}>
-              Готово
+              {labels.done}
             </button>
           )}
         </div>
