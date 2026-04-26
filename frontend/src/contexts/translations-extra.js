@@ -26,36 +26,36 @@ const WEEKDAYS = {
 // Greeting shown when voice is selected. Used both as chat message and as TTS text.
 const GREETINGS = {
   ru: {
-    male: 'Добрый день! Я Leon, ваш личный консультант по снижению веса.\nПомогаю людям разобраться в причинах лишнего веса и найти путь, который подойдёт именно вам — без жёстких диет и срывов.\nКак вас зовут?',
-    female: 'Добрый день! Я Kylie, ваш личный консультант по снижению веса.\nРаботаю с каждым человеком индивидуально — потому что универсальных решений не бывает.\nКак мне к вам обращаться?',
+    male: 'Здравствуйте, я Leon — рядом, чтобы поддержать ваш путь.\nКак мне к вам обращаться?',
+    female: 'Здравствуйте, я Kylie — рядом, чтобы поддержать ваш путь.\nКак мне к вам обращаться?',
   },
   en: {
-    male: "Hi, I'm Leon — I'm here to support you.\nHow are you feeling today?",
-    female: "Hi, I'm Kylie — I'm here to support you.\nHow are you feeling today?",
+    male: "Hi, I'm Leon — here to support your journey.\nWhat should I call you?",
+    female: "Hi, I'm Kylie — here to support your journey.\nWhat should I call you?",
   },
   zh: {
-    male: '您好，我是Leon — 您的个人心理顾问。\n请简要告诉我您的困扰，我们一起来面对。\n我该如何称呼您？',
-    female: '您好，我是Kylie — 您的个人心理顾问。\n请简要告诉我您的困扰，我们一起来面对。\n我该如何称呼您？',
+    male: '您好，我是Leon — 我会陪伴并支持您的旅程。\n我该如何称呼您？',
+    female: '您好，我是Kylie — 我会陪伴并支持您的旅程。\n我该如何称呼您？',
   },
   es: {
-    male: 'Hola, soy Leon — tu consejero personal.\nCuéntame brevemente qué te preocupa y lo resolveremos juntos.\n¿Cómo te puedo llamar?',
-    female: 'Hola, soy Kylie — tu consejera personal.\nCuéntame brevemente qué te preocupa y lo resolveremos juntos.\n¿Cómo te puedo llamar?',
+    male: 'Hola, soy Leon — estoy aquí para acompañar tu camino.\n¿Cómo te puedo llamar?',
+    female: 'Hola, soy Kylie — estoy aquí para acompañar tu camino.\n¿Cómo te puedo llamar?',
   },
   ar: {
-    male: 'مرحبًا، أنا Leon — مستشارك الشخصي.\nأخبرني باختصار عمَّا يُقلقك وسنحاول معًا حلَّه.\nكيف أناديك؟',
-    female: 'مرحبًا، أنا Kylie — مستشارتك الشخصية.\nأخبرني باختصار عمَّا يُقلقك وسنحاول معًا حلَّه.\nكيف أناديك؟',
+    male: 'مرحبًا، أنا Leon — هنا لأدعم رحلتك.\nكيف أناديك؟',
+    female: 'مرحبًا، أنا Kylie — هنا لأدعم رحلتك.\nكيف أناديك؟',
   },
   fr: {
-    male: 'Bonjour, je suis Leon — votre conseiller personnel.\nDites-moi en quelques mots ce qui vous préoccupe et nous essaierons de le comprendre ensemble.\nComment dois-je vous appeler ?',
-    female: 'Bonjour, je suis Kylie — votre conseillère personnelle.\nDites-moi en quelques mots ce qui vous préoccupe et nous essaierons de le comprendre ensemble.\nComment dois-je vous appeler ?',
+    male: 'Bonjour, je suis Leon — je suis là pour accompagner votre parcours.\nComment dois-je vous appeler ?',
+    female: 'Bonjour, je suis Kylie — je suis là pour accompagner votre parcours.\nComment dois-je vous appeler ?',
   },
   de: {
-    male: 'Hallo, ich bin Leon — Ihr persönlicher Berater.\nErzählen Sie mir kurz, was Sie beschäftigt, und wir versuchen gemeinsam, es zu klären.\nWie darf ich Sie ansprechen?',
-    female: 'Hallo, ich bin Kylie — Ihre persönliche Beraterin.\nErzählen Sie mir kurz, was Sie beschäftigt, und wir versuchen gemeinsam, es zu klären.\nWie darf ich Sie ansprechen?',
+    male: 'Hallo, ich bin Leon — hier, um Sie auf Ihrem Weg zu begleiten.\nWie darf ich Sie ansprechen?',
+    female: 'Hallo, ich bin Kylie — hier, um Sie auf Ihrem Weg zu begleiten.\nWie darf ich Sie ansprechen?',
   },
   hi: {
-    male: 'नमस्ते, मैं Leon हूँ — आपका व्यक्तिगत सलाहकार।\nसंक्षेप में बताइए आपको क्या परेशान कर रहा है, हम साथ मिलकर समझने की कोशिश करेंगे।\nमैं आपको किस नाम से पुकारूँ?',
-    female: 'नमस्ते, मैं Kylie हूँ — आपकी व्यक्तिगत सलाहकार।\nसंक्षेप में बताइए आपको क्या परेशान कर रहा है, हम साथ मिलकर समझने की कोशिश करेंगे।\nमैं आपको किस नाम से पुकारूँ?',
+    male: 'नमस्ते, मैं Leon हूँ — आपकी यात्रा में आपके साथ हूँ।\nमैं आपको किस नाम से पुकारूँ?',
+    female: 'नमस्ते, मैं Kylie हूँ — आपकी यात्रा में आपके साथ हूँ।\nमैं आपको किस नाम से पुकारूँ?',
   },
 };
 
