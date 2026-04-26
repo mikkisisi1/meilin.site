@@ -331,9 +331,12 @@ export default function ChatPage() {
     if (isListening) {
       stopListening();
     } else {
+      // Barge-in: silence Leon/Kylie the moment the user wants to talk —
+      // otherwise TTS keeps playing over the mic and gets re-captured by STT.
+      stopTTS();
       startListening();
     }
-  }, [isSupported, isListening, startListening, stopListening, t]);
+  }, [isSupported, isListening, startListening, stopListening, stopTTS, t]);
 
   // Image upload
   const { selectedImage, setSelectedImage, handleImageSelect, sendImageMessage } = useImageUpload({
