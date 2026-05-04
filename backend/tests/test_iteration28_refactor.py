@@ -18,7 +18,7 @@ os.environ.setdefault("DB_NAME", "miro_care")
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://leon-kylie-chat.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://slimlight-debug.preview.emergentagent.com").rstrip("/")
 
 
 # ---------- Helper-import smoke (refactor correctness) ----------

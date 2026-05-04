@@ -1,150 +1,142 @@
 <analysis>**original_problem_statement**: 
-PRODUCT REQUIREMENTS: Build a hybrid AI-psychologist platform focusing specifically on Weight Loss. The app offers completely unlimited free usage. The app uses a pure conversational interface (chat = center of product) via the Slim You Spec. The landing page is a fullscreen looping video. Users enter the chat immediately without registration. Agents are Leon (male) and Kylie (female). Authentication is deferred until *after* the intake questionnaire.
+PRODUCT REQUIREMENTS: Build a hybrid AI-psychologist platform focusing specifically on Weight Loss. The app offers completely unlimited free usage. The app uses a pure conversational interface (chat = center of product) via the Slim You Spec. Users enter the chat immediately without registration. Agents are Leon (male) and Kylie (female). Authentication is deferred until after the intake questionnaire. The platform has been recently rebranded to SlimLight.
 
 **User's preferred language**: Russian
-*INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from their messages inside the <trajectory> tag and INSTRUCT next agent to respond in the user's preferred language only.*
+INSTRUCT NEXT AGENT: You MUST automatically detect the user's primary language from their messages inside the trajectory tag and INSTRUCT next agent to respond in the user's preferred language only. The user is communicating in Russian. Respond ONLY in Russian.
 
 **what currently exists?** 
-A React + FastAPI + MongoDB AI Weight-Loss Consultant. Features a fullscreen auto-playing video leading directly to chat. SSE Chat Streaming with sentence-by-sentence TTS (Fish Audio) is fully operational with independent agent histories and strict voice enforcement (no cross-talking). The app uses secure  cookie-based JWT authentication, supports Magic Link (WhatsApp/Email) login, and features Barge-in logic (microphone interrupts TTS). The UI includes a glassmorphic burger menu with staggered cascade animations.
+A React + FastAPI + MongoDB AI Weight-Loss Consultant. Features a fullscreen auto-playing video leading directly to chat. SSE Chat Streaming with sentence-by-sentence TTS (Fish Audio S2-Pro) is integrated. The app uses secure  cookie-based JWT authentication, Magic Link (WhatsApp/Email) login, and Barge-in logic. Recently, the app underwent massive refactoring (extracting hooks from  and helpers from ) and rebranding to SlimLight. Currently, there is a major frontend regression regarding TTS voices (cross-talk/wrong voice) and the microphone button.
 
 **Last working item**: 
-    - Last item agent was working: Implementing staggered cascade fade-in animations for the Language grid buttons inside the Burger Menu.
-    - Status: USER VERIFICATION PENDING
-    - Agent Testing Done: Y
-    - Which testing method agent to use? screenshot tool
-    - User Testing Done: N
+    - Last item agent was working: Investigating a severe frontend regression where the male agent (Leon) speaks with a female voice and the microphone fails to work. This occurred after the  refactoring and Service Worker cache busting. 
+    - Status: BLOCKED / USER VERIFICATION PENDING
+    - Agent Testing Done: Y (Backend verified via curl, MP3s are correctly generated and distinct. Regression is strictly on the frontend/PWA cache).
+    - Which testing method agent to use? screenshot tool / manual browser debugging.
+    - User Testing Done: N (Waiting for user to clear PWA cache or perform a platform Rollback).
 
 **All Pending/In progress Issue list**:  
-  Issue 1: Production Deployment Failure (Cloudflare 520 Error / 120s Wrapper Timeout) - P0
+  Issue 1: Frontend TTS Cross-Talk (Leon using female voice) & Microphone Broken - P0
+     - Attempted fixes: Investigated backend (verified working). Suspected PWA Service Worker stale cache conflict with the newly extracted React hooks (, , ).
+     - Next debug checklist: DO NOT make blind code changes. The previous agent stopped coding to prevent wasting the user's credits. Wait for the user to confirm if clearing the cache/unregistering the Service Worker fixed it, OR if they performed a Rollback to the pre-refactor commit. If it is a real code bug, investigate , , and  state management.
+     - Why fix this issue and what will be achieved with the fix? Restores core app functionality. User has spent significant credits on this and is highly frustrated.
+     - Status: USER VERIFICATION PENDING / BLOCKED
+     - Is recurring issue? Y (Introduced in this session after refactoring).
+     - Should Test frontend/backend/both after fix? Frontend.
+     - Blocked on other issue: Waiting for user action/confirmation.
+
+  Issue 2: Production Deployment Failure (Cloudflare 520 Error / 120s Wrapper Timeout) - P2
      - Attempted fixes: Escalated to Emergent Support in a previous session.
-     - Next debug checklist: DO NOT attempt to fix this via code. This is an Emergent pod/wrapper infrastructure limitation. Wait for platform support.
-     - Why fix this issue and what will be achieved with the fix? Allows the app to be deployed reliably to production.
+     - Next debug checklist: DO NOT attempt to fix this via code. This is an Emergent pod/wrapper infrastructure limitation.
+     - Why fix this issue and what will be achieved with the fix? Allows the app to be deployed reliably.
      - Status: BLOCKED
      - Is recurring issue? Y
      - Should Test frontend/backend/both after fix? Both
      - Blocked on other issue: Emergent DevOps Support Ticket
 
-  Issue 2: High Component Complexity & Missing React Hook Dependencies - P2
-     - Attempted fixes: Acknowledged from user's Code Quality Report, but deferred to prioritize feature delivery.
-     - Next debug checklist: Break down  (>500 lines) and . Add missing dependencies to / hooks. Add error handling to empty catch blocks.
-     - Why fix this issue and what will be achieved with the fix? Improves code maintainability and prevents stale closure bugs.
-     - Status: NOT STARTED
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? Frontend
-     - Blocked on other issue: None
-
 **In progress Task List**: 
-  None.
+  None. The previous agent halted all work to avoid consuming credits until the P0 regression is resolved or rolled back.
 
 **Upcoming and Future Tasks**
-    Upcoming Tasks:
-    - Task 1: Staggered cascade animation for Quick Replies in the chat (suggested by agent, waiting for user confirmation). (Priority: P2)
-    - Task 2: Backend Directory Refactoring (move remaining routes to  and split ) (Priority: P2)
-    
     Future Tasks:
-    - Task 3: Admin panel creation (Priority: P2)
-    - Task 4: Add email notification logic to site admin when a new Talk to Specialist request is submitted (Priority: P2)
+    - Task 1: Admin panel creation (Priority: P2)
+    - Task 2: Add email notification logic to site admin when a new Talk to Specialist request is submitted (Priority: P2)
 
 **Completed work in this session**
-- Fixed TTS Voice Leakage bug (Leon occasionally using female voice) via strict backend validation and frontend queue separation. (DONE)
-- Migrated JWT authentication from  to  secure cookies. (DONE)
-- Changed Save to Home Screen prompt () to appear contextually (5s after intake) rather than on landing. (DONE)
-- Implemented Magic Link authentication flow for Email/WhatsApp (, ). (DONE)
-- Added Barge-in support (clicking the microphone now stops TTS playback immediately). (DONE)
-- Redesigned Burger Menu (50vw width, Helvetica Neue thin font, glassmorphism blur) with staggered fade animations for list items and language flags. (DONE)
+- Rebranded application from Miro.Care to **SlimLight** (DONE).
+- Completely removed all references, images, and routes related to Miron Shakira and Oksana (DONE).
+- Applied CSS staggered cascade fade-in animations to Quick Replies in the chat (DONE).
+- Fixed ESLint warnings in  (removed unnecessary dependencies) (DONE).
+- Refactored  into smaller hooks (, , ) and components () (DONE).
+- Refactored  by extracting  (DONE).
+- Adjusted Fish Audio TTS settings (speed=1.0, emotion markers = ), synced fallback greetings, and bumped Service Worker cache to  (DONE).
 
 **Earlier issues found/mentioned but not fixed**
-   - Issue 1: Oversized  and complex backend endpoints (, )
-     - Debug checklist: Split  into , , . Refactor  helper functions.
-     - Why to solve this issue and what will be achieved with this: From the Code Quality Report. Improves maintainability.
-     - Should Test frontend/backend/both after fix: Both
-     - Is recurring issue? N
+   - Issue 1: TTS missing/aborting requests in the browser. 
+     - Debug checklist: Partially mitigated by adjusting cache busting, but evolved into the cross-talk issue.
+     - Why to solve this issue and what will be achieved with this? Core user experience.
+     - Should Test frontend/backend/both after fix: Frontend
+     - Is recurring issue? Y
 
 **Known issue recurrence from previous fork**
   - Issue recurrence in previous fork: Production Deployment Cloudflare 520 / 120s timeout.
   - Recurrence count: 9+
-  - Status: BLOCKED (Escalated to Emergent support. Do not attempt code fixes for this).
+  - Status: BLOCKED.
 
 **Code Architecture**
 - 
-  -  (FastAPI entry)
-  -  (Cookie and JWT helpers)
-  -  (Magic Link Dispatch Stub)
-  -  (Chat and Streaming)
-  -  (Audio generation, strict voice ID)
-  -  (Cookie-based auth endpoints)
-  -  (Magic link request/verify endpoints)
+  - 
+  -  (Slimmed down endpoints)
+  -  (Extracted AI/DuckDuckGo logic)
+  -  &  (Strict voice enforcement, Fish Audio Config)
 - 
-  -  (Main application interface, barge-in logic)
-  -  (Handles  route)
-  -  (Strict per-sentence voice tracking)
-  -  (Redesigned glassmorphic menu)
-  -  (Contextual PWA install prompt)
-  -  (Configured for )
+  -  (Refactored, slimmed down)
+  -  (New)
+  - 
+  -  (New)
+  -  (New)
+  -  (New)
+  -  (Service worker )
 
 **Key Technical Concepts**
-React, FastAPI, MongoDB, Fish Audio S2-Pro, OpenRouter (Claude), Server-Sent Events (SSE), httpOnly JWT Cookies, CSS staggered delay animations.
+React Hooks, FastAPI, MongoDB, Fish Audio S2-Pro (streaming TTS), OpenRouter (Claude), SSE, HTTPOnly JWT Cookies, Progressive Web App (PWA) Service Workers.
 
 **key DB schema**
-  - : {, , ,  (ENCRYPTED),  (ENCRYPTED)}
-  - : {, , , }
+  - : {, , , , }
+  - : {, }
+  - : {, , }
 
 **changes in tech stack**
-  - Authentication completely moved to  secure cookies.  is no longer used for  or . All API requests must use .
+  - Massive architectural change in Frontend state management.  logic was heavily decoupled into multiple hooks (, , ). This may be causing race conditions or stale closures resulting in the current TTS/Mic bugs.
 
 **All files of reference** 
-  -  &  (Strict voice enforcement)
-  -  &  (Cookie-based auth logic)
-  -  &  (Magic Link logic & sender stub)
-  -  &  (Cookie request adaptations)
-  -  (New Magic link view)
-  -  &  (Menu redesign and stagger animations)
-  -  (Barge-in fix and strict sentence queueing)
+  - 
+  - 
+  - 
+  - 
+  - 
 
 **Areas that need refactoring**: 
--  (>500 lines) and backend  (high cyclomatic complexity). 
--  requires actual integration (currently a console.log stub) once the user provides Twilio/SendGrid keys.
+- None. Refactoring just took place and destabilized the app. The priority is **stabilization**.
 
 **key api endpoints**
   - 
   - 
-  - , ,  (Requires Cookies)
-  - , 
 
 **Critical Info for New Agent** 
-1. **LANGUAGE EXPECTATION**: Always communicate with the user in **Russian**.
-2. **AUTH ARCHITECTURE**: The app uses  cookies. Do NOT use or revert to  for JWTs.  is already configured for this.
-3. **MAGIC LINK DISPATCHER**: The WhatsApp/Email sender in  is currently a STUB (logs to console). Do not modify until the user provides real API keys (like Twilio or Resend).
-4. **INFRASTRUCTURE BUG**: Ignore the Cloudflare 520 error on production.
+1. **CRITICAL WARNING - DO NOT CODE BLINDLY**: The user is extremely angry about spending over 00 in credits on agent-introduced bugs (specifically the Voice/Mic breaking after the refactor). The previous agent filed a formal support complaint on their behalf and **stopped making speculative fixes**.
+2. **NEXT STEPS**: Read the last message carefully. You must wait for the user to confirm if they rolled back the project OR if they cleared their cache. If they rolled back, verify the current state of the code. If they didn't, ask for explicit console logs before modifying *any* files.
+3. **LANGUAGE EXPECTATION**: Always communicate with the user in **Russian** and maintain an empathetic, highly cautious tone. 
+4. The backend TTS () is working perfectly when tested via cURL (returning correct 200 OK MP3s for both male and female voices). The bug is strictly within the React frontend or the PWA Service Worker cache.
 
 **documents and test reports created in this job** 
-  -  (Updated with Cookie Auth, Magic Link, Barge-in, Menu redesign)
-  -  (Backend/Frontend Cookie Auth & TTS Strict test - Pass)
+  -  (Updated with SlimLight rebranding and refactor notes)
+  - 
+  -  (Passed, but missed frontend race conditions).
 
 **Last 10 User Messages and any pending HUMAN messages** 
- - User: burger menu. correction. text thin font helvetica. smooth slides 2 seconds to half screen. background glassmorph translucent with minimal blur. -> Agent applied CSS changes.
- - User: do it (regarding staggered cascade animation for menu items) -> Agent applied staggered fade-in delays.
- - User: do it (regarding language button cascade animation) -> Agent applied staggered animations to language flags.
- - Agent: Would you like me to apply the same cascade animation to the quick-replies in the chat? -> **PENDING HUMAN RESPONSE**. Wait for the user's answer before proceeding.
+ - User: Refactor and  -> Agent extracted helpers and hooks.
+ - User: My voices dont work anymore! Why am I paying credits for your mistakes!" -> Agent verified backend is working, escalated to support, asked user to clear cache or rollback.
+ - User: "I dont know which version worked. Find the exact issue. I spent 00 on your mistakes. -> Agent analyzed via screenshot, found .
+ - User: Voices work now, but settings are wrong. Need speed 1.0, Professional, calm, attentive, streaming. Rewrite greeting. DONT CHANGE ANYTHING ELSE." -> Agent changed `voice_config.py`, updated greeting, cleared PWA cache version.
+ - User: "Now Leon speaks with a female voice and microphone doesnt work! Stop breaking things! Complaint to support. -> Agent verified backend works via screenshot. Esculated to support. Advised user that this is likely a PWA stale cache issue. Stopped making changes and asked user to Unregister Service Worker or Rollback. **PENDING HUMAN RESPONSE**.
 
 **Project Health Check:**
-- Broken: Cloudflare 520 timeout on Emergent Production deployment (Infrastructure issue).
-- Mocked:  (SMS/Email magic link sender logs to console pending API keys).
+- Broken: Frontend TTS logic (Cross-talk/Female voice for Male agent) and Microphone capture failure. 
 
 **3rd Party Integrations** 
- - OpenRouter (Claude Sonnet 3.5/4.5) — requires User API Key
+ - OpenRouter (Claude Sonnet 4.5) — requires User API Key
  - Fish Audio (S2-Pro Voice Synthesis) — requires User API Key
  - Stripe (Payments) — uses Test Key
  - Emergent Universal LLM Key (Configured as fallback)
 
 **Testing status**
-  - Testing agent used after significant changes: YES ( for Auth changes)
+  - Testing agent used after significant changes: YES ( after refactor)
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: 
-  - Known regressions: None
+  - Test files created: None new.
+  - Known regressions: Frontend voice selection state mismatch (cross-talk) and broken microphone hook.
 
 **Credentials to test flow:**
 Check .
 
 **What agent forgot to execute**
-Nothing. The agent successfully addressed bug fixes, integrated cookie-based auth, added the magic link flow, barge-in capabilities, and the burger menu visual overhauls exactly as requested.</analysis>
+The agent executed the requested refactoring but failed to properly handle React state dependencies and PWA caching lifecycles during the extraction of  and , leading directly to the current regressions. No pending positive tasks were forgotten, but the stabilization task is highly critical.</analysis>
