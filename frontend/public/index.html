@@ -18,16 +18,21 @@
         <meta http-equiv="Pragma" content="no-cache" />
         <meta http-equiv="Expires" content="0" />
         <script>
-            // Force cache bust v3 — clears HTTP caches only, leaves SW registration intact so PWA install works
-            if (!sessionStorage.getItem('cache_v3')) {
-                sessionStorage.setItem('cache_v3', '1');
+            // Force cache bust v4 — wipe ALL old caches (Miro.Care era) on first visit after rebrand to SlimLight.
+            if (!sessionStorage.getItem('cache_v4')) {
+                sessionStorage.setItem('cache_v4', '1');
                 if ('caches' in window) {
                     caches.keys().then(function(names) {
                         names.forEach(function(name) {
-                            if (name !== 'miro-shell-v1') caches.delete(name);
+                            if (name !== 'slimlight-shell-v4') caches.delete(name);
                         });
                     });
                 }
+                // Also clear stale localStorage keys from the old brand. Keep auth + language.
+                try {
+                    localStorage.removeItem('miro_pwa_install_dismissed');
+                    sessionStorage.removeItem('cache_v3');
+                } catch (_) { /* noop */ }
             }
             // Register PWA service worker — auto-update on every visit
             if ('serviceWorker' in navigator) {

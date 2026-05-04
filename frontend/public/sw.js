@@ -5,7 +5,7 @@
  *   - API / TTS / external     → never cached (pass-through)
  *   - Shell fallback           → cached for offline use only
  */
-const CACHE = 'miro-shell-v3';
+const CACHE = 'slimlight-shell-v4';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/favicon.ico'];
 
 self.addEventListener('install', (e) => {
