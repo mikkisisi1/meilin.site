@@ -3,8 +3,8 @@ import { getGreeting } from '@/contexts/translations-extra';
 import { API_BASE } from '@/lib/apiClient';
 
 const FALLBACK_GREETINGS = {
-  male: "Hi, I'm Leon — I'm here to support you.\nHow are you feeling today?",
-  female: "Hi, I'm Kylie — I'm here to support you.\nHow are you feeling today?",
+  male: "Hi, I'm Leon — here to support your journey.\nWhat should I call you?",
+  female: "Hi, I'm Kylie — here to support your journey.\nWhat should I call you?",
 };
 
 export const getLangGreeting = (lang, voice) =>
