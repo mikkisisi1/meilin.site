@@ -116,15 +116,26 @@ STATIC_DIR = ROOT_DIR / "static"
 if STATIC_DIR.exists():
     app.mount("/api/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
-cors_origins = os.environ.get("CORS_ORIGINS", "*").split(",")
+cors_origins_raw = os.environ.get("CORS_ORIGINS", "*").split(",")
+cors_origins = [o.strip() for o in cors_origins_raw if o.strip()]
 frontend_url = os.environ.get("FRONTEND_URL", "")
 if frontend_url and frontend_url not in cors_origins:
     cors_origins.append(frontend_url)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS spec forbids `allow_origins=["*"]` together with `allow_credentials=True`
+# (browsers silently reject such responses). When a wildcard is requested, use
+# `allow_origin_regex=".*"` which echoes the actual Origin back — this is the
+# only way to keep cookies/credentials working across any frontend domain.
+cors_kwargs = {
+    "allow_credentials": True,
+    "allow_methods": ["*"],
+    "allow_headers": ["*"],
+    "expose_headers": ["*"],
+}
+if "*" in cors_origins or not cors_origins:
+    cors_kwargs["allow_origin_regex"] = ".*"
+    cors_kwargs["allow_origins"] = []
+else:
+    cors_kwargs["allow_origins"] = cors_origins
+
+app.add_middleware(CORSMiddleware, **cors_kwargs)

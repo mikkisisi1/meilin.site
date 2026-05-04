@@ -118,7 +118,6 @@ export const useSpeechRecognition = (language = 'ru') => {
 
           const res = await fetch(API_BASE + '/stt', {
             method: 'POST',
-            credentials: 'include',
             body: formData,
           });
 

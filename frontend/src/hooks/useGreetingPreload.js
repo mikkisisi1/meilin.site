@@ -34,7 +34,6 @@ export default function useGreetingPreload({ voiceChosen, lang }) {
         const response = await fetch(`${API_BASE}/tts`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ text, voice }),
         });
         if (response.ok && !cancelled) {

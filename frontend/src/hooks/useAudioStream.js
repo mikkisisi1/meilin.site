@@ -104,7 +104,6 @@ export default function useAudioStream(user, audioElementRef) {
       const response = await fetch(`${API_BASE}/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ text: sentence, voice }),
         signal: controller.signal,
       });
@@ -246,7 +245,6 @@ export default function useAudioStream(user, audioElementRef) {
       const response = await fetch(`${API_BASE}/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ text, voice }),
         signal: controller.signal,
       });
