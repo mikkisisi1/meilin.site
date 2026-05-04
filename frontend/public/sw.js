@@ -5,7 +5,7 @@
  *   - API / TTS / external     → never cached (pass-through)
  *   - Shell fallback           → cached for offline use only
  */
-const CACHE = 'slimlight-shell-v4';
+const CACHE = 'slimlight-shell-v5';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png', '/favicon.ico'];
 
 self.addEventListener('install', (e) => {
@@ -32,6 +32,18 @@ self.addEventListener('fetch', (e) => {
 
   // API / TTS / external — never cached
   if (url.pathname.startsWith('/api/') || url.hostname.includes('fonts.g') || url.hostname.includes('openrouter')) {
+    return;
+  }
+
+  // Media (video/audio) — let the browser handle Range requests natively.
+  // Caching partial (206) responses is forbidden and intercepting Range requests
+  // via fetch() causes mid-playback flicker/stutter on loop.
+  if (
+    req.destination === 'video' ||
+    req.destination === 'audio' ||
+    url.pathname.startsWith('/media/') ||
+    req.headers.has('range')
+  ) {
     return;
   }
 
